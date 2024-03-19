@@ -31,7 +31,6 @@ class Configuration:
             "Which dialogue pace do you prefer?",
             "dialogue_paces",
         )
-        self.handle_document_upload()
         self.handle_saving()
 
     def set_style(self):
@@ -76,16 +75,6 @@ class Configuration:
             label_visibility="collapsed",
         )
         return options[choice]
-
-    def handle_document_upload(self):
-        label = "Upload Documents"
-        st.subheader(label)
-        self.docs = st.file_uploader(
-            label,
-            type=["txt"],
-            accept_multiple_files=True,
-            label_visibility="collapsed",
-        )
 
     def handle_saving(self):
         st.divider()

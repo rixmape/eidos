@@ -17,7 +17,7 @@ from document_manager import DocumentManager
 class ChatbotPipeline:
     def __init__(self):
         self.config = st.session_state.config
-        self.document_manager = DocumentManager(self.config.docs)
+        self.document_manager = DocumentManager()
         self.initialize_chain()
 
     def initialize_chain(self):
@@ -36,7 +36,7 @@ class ChatbotPipeline:
                 ("human", "{question}"),
             ]
         )
-        model = ChatOpenAI(model=self.config.params["model"])
+        model = ChatOpenAI(model=self.config.params["language_model"])
         rag_chain_from_documents = (
             RunnablePassthrough.assign(
                 context=lambda x: self.format_documents(x["context"])
