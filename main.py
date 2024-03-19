@@ -16,5 +16,5 @@ if __name__ == "__main__":
         state.config.run()
     else:
         if not state.chatbot:
-            state.chatbot = ChatbotAgent()
+            state.chatbot = ChatbotAgent(state.config)
         state.chatbot.run()

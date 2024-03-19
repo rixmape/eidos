@@ -15,12 +15,20 @@ from document_manager import DocumentManager
 
 
 class ChatbotPipeline:
-    def __init__(self):
-        self.config = st.session_state.config
-        self.document_manager = DocumentManager()
+    def __init__(self, configuration):
+        self.config = configuration
+        self.document_manager = DocumentManager(configuration)
+
+        self.initialize_language_model()
+        self.initialize_chatbot_instruction()
+        self.initialize_chains()
+
+    def initialize_language_model(self):
         self.language_model = ChatOpenAI(
-            model=self.config.params["language_model"]
+            model=self.config.parameters["language_model"]
         )
+
+    def initialize_chatbot_instruction(self):
         self.system_message = " ".join(
             [
                 self.config.messages["system"],
@@ -29,7 +37,6 @@ class ChatbotPipeline:
                 self.config.dialogue_pace,
             ]
         )
-        self.initialize_chains()
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()
@@ -124,9 +131,9 @@ class ChatbotPipeline:
 
 
 class ChatbotAgent:
-    def __init__(self):
-        self.config = st.session_state.config
-        self.pipeline = ChatbotPipeline()
+    def __init__(self, configuration):
+        self.config = configuration
+        self.pipeline = ChatbotPipeline(configuration)
         self.chat_history = StreamlitChatMessageHistory()
         self.initialize_chat_history()
 

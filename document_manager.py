@@ -1,7 +1,6 @@
 import os
 
 import chromadb
-import streamlit as st
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.vectorstores.chroma import Chroma
@@ -9,40 +8,34 @@ from langchain_openai import OpenAIEmbeddings
 
 
 class DocumentManager:
-    def __init__(
-        self,
-        database_path="chromadb",
-        allowed_file_types=["txt", "md"],
-        documents_to_return_k=4,
-        documents_to_fetch_k=50,
-    ):
-        self.database_path = database_path
-        self.allowed_file_types = allowed_file_types
-        self.documents_to_return_k = documents_to_return_k
-        self.documents_to_fetch_k = documents_to_fetch_k
+    def __init__(self, configuration):
+        self.config = configuration
+        self.initialize_embedding_model()
 
-        self.config = st.session_state.config
-        self.embedding_model = OpenAIEmbeddings(
-            model=self.config.params["embedding_model"],
-        )
-
-        if os.path.exists(self.database_path):
+        if os.path.exists(self.config.parameters["database_path"]):
             self.retriever = self.load_retriever()
         else:
-            docs = self.read_documents()
-            self.retriever = self.initialize_retriever(docs)
+            self.documents = self.read_documents()
+            self.retriever = self.initialize_retriever()
+
+    def initialize_embedding_model(self):
+        self.embedding_model = OpenAIEmbeddings(
+            model=self.config.parameters["embedding_model"],
+        )
 
     def get_retriever(self, database):
         return database.as_retriever(
-            search_type="mmr",
+            search_type=self.config.parameters["search_type"],
             search_kwargs={
-                "k": self.documents_to_return_k,
-                "fetch_k": self.documents_to_fetch_k,
+                "k": self.config.parameters["docs_to_use"],
+                "fetch_k": self.config.parameters["docs_to_process"],
             },
         )
 
     def load_retriever(self):
-        client = chromadb.PersistentClient(path=self.database_path)
+        client = chromadb.PersistentClient(
+            path=self.config.parameters["database_path"]
+        )
         vector_database = Chroma(
             embedding_function=self.embedding_model,
             client=client,
@@ -52,7 +45,8 @@ class DocumentManager:
     def read_documents(self, path="documents", limit=None):
         docs = []
         for filename in os.listdir(path)[:limit]:
-            if filename.split(".")[-1] not in self.allowed_file_types:
+            file_extension = filename.split(".")[-1]
+            if file_extension not in self.config["allowed_file_types"]:
                 continue
             doc_loader = TextLoader(
                 os.path.join(path, filename),
@@ -61,17 +55,17 @@ class DocumentManager:
             docs.extend(doc_loader.load())
         return docs
 
-    def initialize_retriever(self, docs):
+    def initialize_retriever(self):
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1500,
             chunk_overlap=200,
         )
+        splits = text_splitter.split_documents(self.documents)
 
-        documents = text_splitter.split_documents(docs)
         vector_database = Chroma.from_documents(
-            documents,
+            splits,
             self.embedding_model,
-            persist_directory=self.database_path,
+            persist_directory=self.config.parameters["database_path"],
         )
         vector_database.persist()
         return self.get_retriever(vector_database)
