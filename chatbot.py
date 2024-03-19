@@ -130,9 +130,20 @@ class ChatbotAgent:
         self.chat_history = StreamlitChatMessageHistory()
         self.initialize_chat_history()
 
+    def set_style(self):
+        style = """
+        <style>
+        div[data-testid="stChatMessage"] {
+            gap: 1rem !important;
+        }
+        </style>
+        """
+        st.markdown(style, unsafe_allow_html=True)
+
     def initialize_chat_history(self):
+        initial_message = "What's one thing in that you believe to be true?"
         if not self.chat_history.messages:
-            self.chat_history.add_ai_message(self.config.messages["initial"])
+            self.chat_history.add_ai_message(initial_message)
 
     def display_messages(self):
         for message in self.chat_history.messages:
@@ -148,5 +159,6 @@ class ChatbotAgent:
             self.chat_history.add_ai_message(answer)
 
     def run(self):
+        self.set_style()
         self.display_messages()
         self.handle_input()

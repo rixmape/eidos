@@ -16,7 +16,11 @@ class Configuration:
             os.environ[key] = val
 
     def run(self):
-        st.subheader(self.messages["welcome"])
+        text = (
+            "Let's customize your experience. Answer a few questions to"
+            " tailor our discussions to your preferences."
+        )
+        st.subheader(text)
 
         self.set_style()
         self.topic = self.handle_selection(
