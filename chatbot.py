@@ -33,6 +33,7 @@ class ChatbotPipeline:
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()
+        self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_without_documents = self.create_chain_without_documents()
         self.chain_with_documents = self.create_chain_with_documents()
         self.complete_chain = self.create_complete_chain()
@@ -44,6 +45,16 @@ class ChatbotPipeline:
             "\n\nNext Action:"
         )
         prompt_template = PromptTemplate.from_template(template)
+        return prompt_template | self.language_model | StrOutputParser()
+
+    def create_chain_query_expansion(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.config.messages["query_expansion"]),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{question}"),
+            ]
+        )
         return prompt_template | self.language_model | StrOutputParser()
 
     def create_chain_without_documents(self):
@@ -65,7 +76,11 @@ class ChatbotPipeline:
             ]
         )
         context = (
-            itemgetter("question")
+            {
+                "question": itemgetter("question"),
+                "history": itemgetter("history"),
+            }
+            | self.chain_query_expansion
             | self.document_manager.retriever
             | self.format_documents
         )
@@ -125,16 +140,12 @@ class ChatbotAgent:
 
     def handle_input(self):
         if query := st.chat_input():
-            self.add_message("human", query)
+            st.chat_message("human").write(query)
             answer = self.pipeline.get_response(query, self.chat_history)
-            self.add_message("ai", answer)
+            st.chat_message("ai").write(answer)
 
-    def add_message(self, message_type, content):
-        st.chat_message(message_type).write(content)
-        if message_type == "human":
-            self.chat_history.add_user_message(content)
-        else:
-            self.chat_history.add_ai_message(content)
+            self.chat_history.add_user_message(query)
+            self.chat_history.add_ai_message(answer)
 
     def run(self):
         self.display_messages()
