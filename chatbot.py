@@ -20,7 +20,7 @@ class ChatbotPipeline:
         self.document_manager = DocumentManager(configuration)
 
         self.initialize_language_model()
-        self.initialize_chatbot_instruction()
+        self.initialize_role_prompt()
         self.initialize_chains()
 
     def initialize_language_model(self):
@@ -28,7 +28,7 @@ class ChatbotPipeline:
             model=self.config.parameters["language_model"]
         )
 
-    def initialize_chatbot_instruction(self):
+    def initialize_role_prompt(self):
         messages = [
             self.config.messages["system"],
             self.config.topic,
@@ -44,10 +44,11 @@ class ChatbotPipeline:
             )
             messages.append(message)
 
-        self.system_message = " ".join(messages)
+        self.role_prompt = " ".join(messages)
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()
+        self.chain_initial_message = self.create_chain_initial_message()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_without_documents = self.create_chain_without_documents()
         self.chain_with_documents = self.create_chain_with_documents()
@@ -59,6 +60,11 @@ class ChatbotPipeline:
             "\n\nQuestion:\n\n{question}"
             "\n\nNext Action:"
         )
+        prompt_template = PromptTemplate.from_template(template)
+        return prompt_template | self.language_model | StrOutputParser()
+
+    def create_chain_initial_message(self):
+        template = self.config.messages["initial"]
         prompt_template = PromptTemplate.from_template(template)
         return prompt_template | self.language_model | StrOutputParser()
 
@@ -75,7 +81,7 @@ class ChatbotPipeline:
     def create_chain_without_documents(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.system_message),
+                ("system", self.role_prompt),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{question}"),
             ]
@@ -85,7 +91,7 @@ class ChatbotPipeline:
     def create_chain_with_documents(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", f"{self.system_message}\n\n{{context}}"),
+                ("system", f"{self.role_prompt}\n\n{{context}}"),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{question}"),
             ]
@@ -129,6 +135,13 @@ class ChatbotPipeline:
         )
         return f"Use the following documents to answer the query.\n\n{context}"
 
+    def get_initial_message(self):
+        return self.chain_initial_message.invoke(
+            {
+                "prompt": self.role_prompt,
+            }
+        )
+
     def get_response(self, question, history):
         return self.complete_chain.invoke(
             {
@@ -156,7 +169,7 @@ class ChatbotAgent:
         st.markdown(style, unsafe_allow_html=True)
 
     def initialize_chat_history(self):
-        initial_message = "What's one thing in that you believe to be true?"
+        initial_message = self.pipeline.get_initial_message()
         if not self.chat_history.messages:
             self.chat_history.add_ai_message(initial_message)
 
