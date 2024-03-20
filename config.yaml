@@ -82,13 +82,6 @@ templates:
 
     Next Step:
 
-  user_info: |
-    I am sharing some information about myself to improve our dialogue. You must consider this information to tailor your responses accordingly. I appreciate if you can incorporate this information into our conversation.
-
-    ```
-    {info}
-    ```
-
 topics:
   ethics:
     caption: Navigate moral dilemmas and understand ethical behaviors' impacts.

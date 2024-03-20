@@ -24,12 +24,8 @@ class Configuration:
     def apply_custom_styles(self):
         custom_style = """
         <style>
-        h4,
-        div[data-testid="stExpander"] {
-            padding: 2rem 0 1rem 0;
-        }
         div[data-testid="stButton"] {
-            padding: 1rem 0 0;
+            text-align: right;
         }
         label[data-baseweb="radio"] {
             border: 1px solid rgb(50, 50, 50) !important;
@@ -47,7 +43,7 @@ class Configuration:
         }
         div[role="radiogroup"] {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
         }
         </style>
@@ -66,22 +62,8 @@ class Configuration:
         )
         return options[value]["instruction"]
 
-    def custom_input(self, prompt):
-        value = st.text_area(
-            prompt,
-            max_chars=600,
-            key=prompt.lower(),
-            height=150,
-        )
-        return value
-
     def save_configuration(self):
-        *_, column = st.columns(4)
-        if column.button(
-            "Save Configuration",
-            type="primary",
-            use_container_width=True,
-        ):
+        if st.button("Start Chatting!", type="primary"):
             st.session_state.is_configured = True
             st.rerun()
 
@@ -105,10 +87,5 @@ class Configuration:
             "Which dialogue pace do you prefer?",
             self.dialogue_paces,
         )
-
-        with st.expander("Advanced Configuration"):
-            self.user_info = self.custom_input(
-                "What can you tell me about yourself?",
-            )
 
         self.save_configuration()

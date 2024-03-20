@@ -3,7 +3,7 @@
 from operator import itemgetter
 
 import streamlit as st
-from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -35,11 +35,6 @@ class ChatbotPipeline:
             self.config.language_style,
             self.config.dialogue_pace,
         ]
-
-        if self.config.user_info:
-            template = self.config.templates["user_info"]
-            message = template.format(info=self.config.user_info)
-            messages.append(message)
 
         self.role_prompt = "\n".join(messages)
 
@@ -169,7 +164,7 @@ class ChatbotAgent:
 
     def display_messages(self):
         for message in self.chat_history.messages:
-            st.chat_message(message.type).write(message.content)
+            st.chat_message(message.type).markdown(message.content)
 
     def handle_input(self):
         if query := st.chat_input():
