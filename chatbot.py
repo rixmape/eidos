@@ -25,12 +25,12 @@ class ChatbotPipeline:
 
     def initialize_language_model(self):
         self.language_model = ChatOpenAI(
-            model=self.config.parameters["language_model"]
+            model=self.config.parameters["language_model"],
         )
 
     def initialize_role_prompt(self):
         messages = [
-            self.config.messages["system"],
+            self.config.templates["role"],
             self.config.topic,
             self.config.language_style,
             self.config.dialogue_pace,
@@ -55,23 +55,20 @@ class ChatbotPipeline:
         self.complete_chain = self.create_complete_chain()
 
     def create_chain_router(self):
-        template = (
-            f"{self.config.messages['router']}"
-            "\n\nQuestion:\n\n{question}"
-            "\n\nNext Action:"
-        )
+        template = self.config.templates["chain_router"]
         prompt_template = PromptTemplate.from_template(template)
         return prompt_template | self.language_model | StrOutputParser()
 
     def create_chain_initial_message(self):
-        template = self.config.messages["initial"]
+        template = self.config.templates["initial_message"]
         prompt_template = PromptTemplate.from_template(template)
         return prompt_template | self.language_model | StrOutputParser()
 
     def create_chain_query_expansion(self):
+        template = self.config.templates["query_expansion"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.config.messages["query_expansion"]),
+                ("system", template),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{question}"),
             ]

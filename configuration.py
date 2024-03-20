@@ -1,23 +1,25 @@
 import os
+
 import streamlit as st
+import yaml
 
 
 class Configuration:
     def __init__(self):
+        self.load_config_file()
         self.load_environment_variables()
-        self.load_parameters()
-        self.load_messages()
 
     def load_environment_variables(self):
         environment_variables = st.secrets["env"]
         for key, value in environment_variables.items():
             os.environ[key] = value
 
-    def load_messages(self):
-        self.messages = st.secrets["messages"]
+    def load_config_file(self, path="config.yaml"):
+        with open(path, "r", encoding="utf-8") as file:
+            config = yaml.safe_load(file)
 
-    def load_parameters(self):
-        self.parameters = st.secrets["parameters"]
+        for key, value in config.items():
+            setattr(self, key, value)
 
     def apply_custom_styles(self):
         custom_style = """
@@ -52,9 +54,8 @@ class Configuration:
         """
         st.markdown(custom_style, unsafe_allow_html=True)
 
-    def make_selection(self, prompt, secret_key):
+    def make_selection(self, prompt, options):
         st.markdown(f"#### {prompt}")
-        options = st.secrets[secret_key]
         value = st.radio(
             prompt,
             list(options.keys()),
@@ -94,16 +95,15 @@ class Configuration:
         st.markdown(f"#### {intro_text}")
 
         self.topic = self.make_selection(
-            "What do you want to talk about?",
-            "topics",
+            "What do you want to talk about?", self.topics
         )
         self.language_style = self.make_selection(
             "How do you want me to respond?",
-            "language_styles",
+            self.language_styles,
         )
         self.dialogue_pace = self.make_selection(
             "Which dialogue pace do you prefer?",
-            "dialogue_paces",
+            self.dialogue_paces,
         )
 
         with st.expander("Advanced Configuration"):
