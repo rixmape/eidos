@@ -83,54 +83,60 @@ templates:
     Next Step:
 
 topics:
-  ethics:
+  - branch: ethics
+    title: Moral Problems
     caption: Navigate moral dilemmas and understand ethical behaviors' impacts.
     instruction: |
       The dialogue shall strictly focus on ethics or related fields of philosophy. In particular, explore ethical theories, moral dilemmas, and the consequences of ethical decisions. The goal is to enhance understanding of ethical principles and their application in real-world scenarios.
 
-  logic:
+  - branch: logic
+    title: Reasoning and Argumentation
     caption: Learn to reason and construct arguments with logical precision.
     instruction: |
       The dialogue shall strictly focus on logic or related fields of philosophy. In particular, analyze logical fallacies, argument structures, and principles of deductive and inductive reasoning. The goal is to improve critical thinking skills and the ability to construct coherent arguments.
 
-  metaphysics:
+  - branch: metaphysics
+    title: Nature of Reality
     caption: Examine the essence of reality, being, and the universe's nature.
     instruction: |
       The dialogue shall strictly focus on metaphysics or related fields of philosophy. In particular, delve into the concepts of existence, causality, space and time, and the possibility of free will. The goal is to deepen the understanding of the fundamental nature of reality and existence.
 
-  epistemology:
+  - branch: epistemology
+    title: Knowledge and Belief
     caption: Investigate how we acquire knowledge and its boundaries.
     instruction: |
       The dialogue shall strictly focus on epistemology or related fields of philosophy. In particular, discuss the sources and limits of knowledge, the nature of belief and justification, and the challenge of skepticism. The goal is to explore the basis of knowledge and its implications for understanding the world.
 
-  aesthetics:
+  - branch: aesthetics
+    title: Art, Beauty, and Taste
     caption: Explore the philosophy of beauty and art's profound impact.
     instruction: |
       The dialogue shall strictly focus on aesthetics or related fields of philosophy. In particular, examine the nature of beauty, the interpretation of art, and the aesthetic experience. The goal is to appreciate the philosophical dimensions of art and beauty and their significance in human experience.
 
-  politics:
+  - branch: politics
+    title: Political Philosophy
     caption: Debate governance, rights, and societal duties philosophically.
     instruction: |
       The dialogue shall strictly focus on political philosophy or related fields of philosophy. In particular, debate theories of justice, governance, rights, and responsibilities within societies. The goal is to critically engage with political ideas and understand their impact on contemporary societal structures.
 
 language_styles:
-  casual:
+  - title: casual
     caption: Discuss philosophy in everyday language, making it accessible.
     instruction: |
       Employ relatable, everyday language to demystify philosophical concepts for a broader audience. Simplify intricate ideas to their core components, ensuring accessibility while preserving the integrity of philosophical thought.
 
-  formal:
+  - title: formal
     caption: Engage in precise, academic-level philosophical discussions.
     instruction: |
       Utilize a formal tone, employing precise academic terminology and well-structured arguments. Strive for clear, in-depth explanations and analyses, ensuring that discussions adhere to scholarly standards of argumentation and evidence.
 
 dialogue_paces:
-  fast-paced:
+  - title: fast-paced
     caption: Swiftly explore philosophical ideas with quick insights.
     instruction: |
       Maintain brevity in responses, aiming for quick, sharp insights into philosophical ideas. Prioritize speed and clarity to foster a rapid, interactive dialogue. Always limit your response to two short sentences.
 
-  in-depth:
+  - title: in-depth
     caption: Deep dive into philosophy with thorough analyses and reflections.
     instruction: |
       Provide comprehensive, detailed responses that delve deeply into philosophical concepts, ensuring thorough analysis and reflection. Emphasize length, allowing for extensive exploration and understanding of each topic. Always your response to one paragraph.

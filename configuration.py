@@ -52,15 +52,15 @@ class Configuration:
 
     def make_selection(self, prompt, options):
         st.markdown(f"#### {prompt}")
-        value = st.radio(
+        selected_option = st.radio(
             prompt,
-            list(options.keys()),
-            format_func=lambda key: key.capitalize(),
-            captions=[options[key]["caption"] for key in options.keys()],
+            options,
+            format_func=lambda map: map["title"].capitalize(),
+            captions=[option["caption"] for option in options],
             horizontal=True,
             label_visibility="collapsed",
         )
-        return options[value]["instruction"]
+        return selected_option
 
     def save_configuration(self):
         if st.button("Start Chatting!", type="primary"):
@@ -76,14 +76,15 @@ class Configuration:
         )
         st.markdown(f"#### {intro_text}")
 
-        self.topic = self.make_selection(
-            "What do you want to talk about?", self.topics
+        self.selected_topic = self.make_selection(
+            "What do you want to talk about?",
+            self.topics,
         )
-        self.language_style = self.make_selection(
+        self.selected_language_style = self.make_selection(
             "How do you want me to respond?",
             self.language_styles,
         )
-        self.dialogue_pace = self.make_selection(
+        self.selected_dialogue_pace = self.make_selection(
             "Which dialogue pace do you prefer?",
             self.dialogue_paces,
         )

@@ -31,9 +31,9 @@ class ChatbotPipeline:
     def initialize_role_prompt(self):
         messages = [
             self.config.templates["role"],
-            self.config.topic,
-            self.config.language_style,
-            self.config.dialogue_pace,
+            self.config.selected_topic,
+            self.config.selected_language_style,
+            self.config.selected_dialogue_pace,
         ]
 
         self.role_prompt = "\n".join(messages)
