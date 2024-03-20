@@ -22,8 +22,12 @@ class Configuration:
     def apply_custom_styles(self):
         custom_style = """
         <style>
-        h4 {
+        h4,
+        div[data-testid="stExpander"] {
             padding: 2rem 0 1rem 0;
+        }
+        div[data-testid="stButton"] {
+            padding: 1rem 0 0;
         }
         label[data-baseweb="radio"] {
             border: 1px solid rgb(50, 50, 50) !important;
@@ -51,15 +55,24 @@ class Configuration:
     def make_selection(self, prompt, secret_key):
         st.markdown(f"#### {prompt}")
         options = st.secrets[secret_key]
-        selected_option = st.radio(
+        value = st.radio(
             prompt,
-            options.keys(),
-            format_func=lambda key: key.title(),
-            captions=options.values(),
+            list(options.keys()),
+            format_func=lambda key: key.capitalize(),
+            captions=[options[key]["caption"] for key in options.keys()],
             horizontal=True,
             label_visibility="collapsed",
         )
-        return options[selected_option]
+        return options[value]["instruction"]
+
+    def custom_input(self, prompt):
+        value = st.text_area(
+            prompt,
+            max_chars=250,
+            key=prompt.lower(),
+            height=150,
+        )
+        return value
 
     def save_configuration(self):
         *_, column = st.columns(4)
@@ -93,5 +106,9 @@ class Configuration:
             "dialogue_paces",
         )
 
-        st.divider()
+        with st.expander("Advanced Configuration"):
+            self.user_info = self.custom_input(
+                "What can you tell me about yourself?",
+            )
+
         self.save_configuration()

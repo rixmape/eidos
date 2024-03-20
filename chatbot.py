@@ -29,14 +29,22 @@ class ChatbotPipeline:
         )
 
     def initialize_chatbot_instruction(self):
-        self.system_message = " ".join(
-            [
-                self.config.messages["system"],
-                self.config.topic,
-                self.config.language_style,
-                self.config.dialogue_pace,
-            ]
-        )
+        messages = [
+            self.config.messages["system"],
+            self.config.topic,
+            self.config.language_style,
+            self.config.dialogue_pace,
+        ]
+
+        if self.config.user_info:
+            message = (
+                "\n\nI am sharing some information about myself to improve"
+                " our conversation. You must mention this into your responses:"
+                f"\n\n'''\n{self.config.user_info}\n'''"
+            )
+            messages.append(message)
+
+        self.system_message = " ".join(messages)
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()
