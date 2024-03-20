@@ -5,7 +5,6 @@ from configuration import Configuration
 
 if __name__ == "__main__":
     st.set_page_config(page_title="Eidos", page_icon="🧐")
-    st.title("🧐 Hello, I'm Eidos!")
 
     state = st.session_state
     state.setdefault("is_configured", False)

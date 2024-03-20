@@ -31,9 +31,9 @@ class ChatbotPipeline:
     def initialize_role_prompt(self):
         messages = [
             self.config.templates["role"],
-            self.config.selected_topic,
-            self.config.selected_language_style,
-            self.config.selected_dialogue_pace,
+            self.config.selected_topic["instruction"],
+            self.config.selected_language_style["instruction"],
+            self.config.selected_dialogue_pace["instruction"],
         ]
 
         self.role_prompt = "\n".join(messages)
@@ -175,7 +175,11 @@ class ChatbotAgent:
             self.chat_history.add_user_message(query)
             self.chat_history.add_ai_message(answer)
 
+    def display_title(self):
+        st.title("🧐 Hello, I'm Eidos!")
+
     def run(self):
+        self.display_title()
         self.set_style()
         self.display_messages()
         self.handle_input()

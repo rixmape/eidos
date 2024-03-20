@@ -67,14 +67,12 @@ class Configuration:
             st.session_state.is_configured = True
             st.rerun()
 
-    def run(self):
-        self.apply_custom_styles()
+    def display_title(self):
+        st.title("✨ Let's customize your experience!")
 
-        intro_text = (
-            "Let's customize your experience. Answer a few questions to"
-            " tailor our discussions to your preferences."
-        )
-        st.markdown(f"#### {intro_text}")
+    def run(self):
+        self.display_title()
+        self.apply_custom_styles()
 
         self.selected_topic = self.make_selection(
             "What do you want to talk about?",
