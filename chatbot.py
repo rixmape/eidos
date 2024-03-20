@@ -37,14 +37,11 @@ class ChatbotPipeline:
         ]
 
         if self.config.user_info:
-            message = (
-                "\n\nI am sharing some information about myself to improve"
-                " our conversation. You must mention this into your responses:"
-                f"\n\n'''\n{self.config.user_info}\n'''"
-            )
+            template = self.config.templates["user_info"]
+            message = template.format(info=self.config.user_info)
             messages.append(message)
 
-        self.role_prompt = " ".join(messages)
+        self.role_prompt = "\n".join(messages)
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()

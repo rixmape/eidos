@@ -69,7 +69,7 @@ class Configuration:
     def custom_input(self, prompt):
         value = st.text_area(
             prompt,
-            max_chars=250,
+            max_chars=600,
             key=prompt.lower(),
             height=150,
         )
