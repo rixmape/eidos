@@ -1,5 +1,5 @@
 .venv/
-.streamlit/
 __pycache__/
 chromadb/
 documents/
+secrets.toml
