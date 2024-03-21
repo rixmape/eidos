@@ -1,3 +1,4 @@
+import streamlit as st
 from streamlit.runtime.scriptrunner import RerunData, RerunException
 from streamlit.source_util import get_pages
 
@@ -32,3 +33,36 @@ def switch_page(page_name: str):
     raise ValueError(
         f"Could not find page {page_name}. Must be one of {page_names}"
     )
+
+
+def set_page_style():
+    style = """
+    <style>
+    div[data-testid="stButton"] {
+        text-align: right;
+    }
+    label[data-baseweb="radio"] {
+        border: 1px solid rgb(50, 50, 50) !important;
+        padding: 1rem 1rem;
+        border-radius: 0.5rem;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+    }
+    label:has(.st-aw) {
+        background-color: rgb(93, 50, 50);
+    }
+    label:has(.st-aw) * {
+        color: white;
+    }
+    div[role="radiogroup"] {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    div[data-testid="stChatMessage"] {
+        gap: 1rem !important;
+    }
+    </style>
+    """
+    st.markdown(style, unsafe_allow_html=True)
