@@ -1,18 +1,13 @@
 import streamlit as st
 
 from eidos.configuration import Configuration
-from helpers import page_handling
+from helpers import page_utils
 
-st.set_page_config(page_title="Configuration", page_icon="✨")
-st.title("✨ Let's customize your experience!")
-
-page_handling.go_to_homepage_at_refresh()
-page_handling.set_page_style()
+page_utils.initialize_page("✨", "Configure your experience")
 
 st.session_state.config = Configuration()
 st.session_state.config.run()
 
-st.page_link(
-    "pages/2_🧐_Chat.py",
-    label="🧐 Start chatting",
-)
+st.divider()
+next_page_name = "pages/2_🧐_Chat.py"
+st.page_link(next_page_name, label="🧐 Start chatting")

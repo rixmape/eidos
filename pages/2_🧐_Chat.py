@@ -1,13 +1,9 @@
 import streamlit as st
 
 from eidos.chatbot import ChatbotAgent
-from helpers import page_handling
+from helpers import page_utils
 
-st.set_page_config(page_title="Chat", page_icon="🧐")
-st.title("🧐 Hello, I'm Eidos!")
-
-page_handling.go_to_homepage_at_refresh()
-page_handling.set_page_style()
+page_utils.initialize_page("🧐", "Hello, I'm Eidos!")
 
 st.session_state.setdefault("chatbot", None)
 if not st.session_state.chatbot:

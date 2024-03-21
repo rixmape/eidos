@@ -3,26 +3,23 @@ from streamlit.runtime.scriptrunner import RerunData, RerunException
 from streamlit.source_util import get_pages
 
 
-def standardize_name(name: str) -> str:
-    return name.lower().replace("_", " ")
-
-
-def switch_page(page_name: str):
+def navigate_to_page(target_page: str):
     """
-    Switch page programmatically in a multipage app
+    Navigate to the target page
 
     Args:
         page_name (str): Target page name
     """
-    page_name = standardize_name(page_name)
+    standardize_name = lambda name: name.lower().replace("_", " ")
+    target_page = standardize_name(target_page)
     pages = get_pages("main.py")  # Name of entrypoint script
 
     for page_hash, config in pages.items():
-        if standardize_name(config["page_name"]) == page_name:
+        if standardize_name(config["page_name"]) == target_page:
             raise RerunException(
                 RerunData(
                     page_script_hash=page_hash,
-                    page_name=page_name,
+                    page_name=target_page,
                 )
             )
 
@@ -30,18 +27,7 @@ def switch_page(page_name: str):
         standardize_name(config["page_name"]) for config in pages.values()
     ]
 
-    raise ValueError(
-        f"Could not find page {page_name}. Must be one of {page_names}"
-    )
-
-
-def go_to_homepage_at_refresh():
-    """
-    Navigate to the homepage at refresh
-    """
-    st.session_state.setdefault("visited_home", False)
-    if not st.session_state.visited_home:
-        switch_page("main")
+    raise ValueError(f"{target_page} not found. Must be one of {page_names}")
 
 
 def set_page_style():
@@ -86,3 +72,15 @@ def set_page_style():
     </style>
     """
     st.markdown(style, unsafe_allow_html=True)
+
+
+def initialize_page(icon: str, title: str):
+    st.set_page_config(page_title=title, page_icon=icon)
+    st.title(f"{icon} {title}")
+
+    # TODO: Move definition of `visited_home` here instead of entrypoint script
+    st.session_state.setdefault("visited_home", False)
+    if not st.session_state.visited_home:
+        navigate_to_page("main")
+
+    set_page_style()
