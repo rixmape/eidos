@@ -15,9 +15,9 @@ div[data-testid="stChatMessage"] {
 """
 st.markdown(style, unsafe_allow_html=True)
 
-st.session_state.setdefault("config", None)
-if not st.session_state.config:
-    switch_page("configuration")
+st.session_state.setdefault("visited_home", False)
+if not st.session_state.visited_home:
+    switch_page("main")
 
 st.session_state.setdefault("chatbot", None)
 if not st.session_state.chatbot:

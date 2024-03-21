@@ -1,6 +1,7 @@
 import streamlit as st
 
 from eidos.configuration import Configuration
+from helpers.switch_page import switch_page
 
 st.set_page_config(page_title="Configuration", page_icon="✨")
 st.title("✨ Let's customize your experience!")
@@ -32,6 +33,10 @@ div[role="radiogroup"] {
 </style>
 """
 st.markdown(style, unsafe_allow_html=True)
+
+st.session_state.setdefault("visited_home", False)
+if not st.session_state.visited_home:
+    switch_page("main")
 
 st.session_state.config = Configuration()
 st.session_state.config.run()
