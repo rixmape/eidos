@@ -35,6 +35,15 @@ def switch_page(page_name: str):
     )
 
 
+def go_to_homepage_at_refresh():
+    """
+    Navigate to the homepage at refresh
+    """
+    st.session_state.setdefault("visited_home", False)
+    if not st.session_state.visited_home:
+        switch_page("main")
+
+
 def set_page_style():
     """
     Set custom CSS styles for the page
