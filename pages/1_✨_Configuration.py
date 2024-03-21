@@ -1,7 +1,6 @@
 import streamlit as st
 
-from configuration import Configuration
-from switch_page import switch_page
+from eidos.configuration import Configuration
 
 st.set_page_config(page_title="Configuration", page_icon="✨")
 st.title("✨ Let's customize your experience!")

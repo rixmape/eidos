@@ -1,7 +1,7 @@
 import streamlit as st
 
-from chatbot import ChatbotAgent
-from switch_page import switch_page
+from eidos.chatbot import ChatbotAgent
+from helpers.switch_page import switch_page
 
 st.set_page_config(page_title="Chat", page_icon="🧐")
 st.title("🧐 Hello, I'm Eidos!")
