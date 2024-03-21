@@ -152,14 +152,34 @@ class ChatbotAgent:
             st.chat_message(message.type).markdown(message.content)
 
     def handle_input(self):
-        if query := st.chat_input():
+        if query := st.chat_input(key="chat_input"):
             st.chat_message("human").write(query)
             answer = self.pipeline.get_response(query, self.chat_history)
             st.chat_message("ai").write(answer)
 
             self.chat_history.add_user_message(query)
             self.chat_history.add_ai_message(answer)
+            st.rerun()
+
+    def check_prompt_limit(self):
+        prompts = [
+            message.content
+            for message in self.chat_history.messages
+            if message.type == "human"
+        ]
+        if len(prompts) >= self.config.parameters["max_prompt_count"]:
+            message = (
+                "You have reached the limit."
+                " Please answer the survey form now."
+            )
+            st.warning(message, icon="⚠️")
+            return True
+        return False
 
     def run(self):
         self.display_messages()
+
+        if self.check_prompt_limit():
+            return
+
         self.handle_input()

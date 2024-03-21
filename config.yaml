@@ -7,6 +7,7 @@ parameters:
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
+  max_prompt_count: 3
 
 welcome_message: |
   This innovative web app uses artificial intelligence to facilitate discussions on philosophy.
