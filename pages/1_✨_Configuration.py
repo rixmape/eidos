@@ -9,5 +9,5 @@ st.session_state.config = Configuration()
 st.session_state.config.run()
 
 st.divider()
-next_page_name = "pages/2_🧐_Chat.py"
-st.page_link(next_page_name, label="🧐 Start chatting")
+next_page = "pages/2_🧐_Chat.py"
+st.page_link(next_page, label="🧐 Start chatting")

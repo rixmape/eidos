@@ -8,6 +8,18 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
+welcome_message: |
+  This innovative web app uses artificial intelligence to facilitate discussions on philosophy.
+
+  ### How to Use Eidos
+
+  1. Select a topic
+  2. Customize experience
+  3. Engage in dialogue
+  4. Download the conversation
+  5. Answer three multiple-choice questions
+  6. Fill-up the user survey form
+
 templates:
   greeting: |
     Greetings, fellow philosopher!
@@ -51,7 +63,6 @@ templates:
 
     Next Step:
 
-# TODO: Add thought starters for each topic instead of generating initial message with LLM
 topics:
   - branch: ethics
     title: Moral Problems
