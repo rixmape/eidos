@@ -36,6 +36,9 @@ def switch_page(page_name: str):
 
 
 def set_page_style():
+    """
+    Set custom CSS styles for the page
+    """
     style = """
     <style>
     div[data-testid="stButton"] {
@@ -62,6 +65,14 @@ def set_page_style():
     }
     div[data-testid="stChatMessage"] {
         gap: 1rem !important;
+    }
+    div[data-testid="stPageLink"] div {
+        align-items: flex-end;
+    }
+    a[data-testid="stPageLink-NavLink"] {
+        border: 1px solid rgb(50, 50, 50) !important;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
     }
     </style>
     """

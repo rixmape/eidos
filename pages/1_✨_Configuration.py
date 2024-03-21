@@ -16,6 +16,5 @@ st.session_state.config.run()
 
 st.page_link(
     "pages/2_🧐_Chat.py",
-    label="Chat",
-    icon="🧐",
+    label="🧐 Start chatting",
 )
