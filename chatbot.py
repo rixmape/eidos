@@ -139,16 +139,6 @@ class ChatbotAgent:
         if not self.chat_history.messages:
             self.add_initial_message()
 
-    def set_style(self):
-        style = """
-        <style>
-        div[data-testid="stChatMessage"] {
-            gap: 1rem !important;
-        }
-        </style>
-        """
-        st.markdown(style, unsafe_allow_html=True)
-
     def add_initial_message(self):
         template = self.config.templates["greeting"]
         claims = "\n".join(
@@ -170,11 +160,6 @@ class ChatbotAgent:
             self.chat_history.add_user_message(query)
             self.chat_history.add_ai_message(answer)
 
-    def display_title(self):
-        st.title("🧐 Hello, I'm Eidos!")
-
     def run(self):
-        self.display_title()
-        self.set_style()
         self.display_messages()
         self.handle_input()

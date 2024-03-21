@@ -21,35 +21,6 @@ class Configuration:
         for key, value in config.items():
             setattr(self, key, value)
 
-    def apply_custom_styles(self):
-        custom_style = """
-        <style>
-        div[data-testid="stButton"] {
-            text-align: right;
-        }
-        label[data-baseweb="radio"] {
-            border: 1px solid rgb(50, 50, 50) !important;
-            padding: 1rem 1rem;
-            border-radius: 0.5rem;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-        }
-        label:has(.st-aw) {
-            background-color: rgb(93, 50, 50);
-        }
-        label:has(.st-aw) * {
-            color: white;
-        }
-        div[role="radiogroup"] {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        </style>
-        """
-        st.markdown(custom_style, unsafe_allow_html=True)
-
     def make_selection(self, prompt, options):
         st.markdown(f"#### {prompt}")
         selected_option = st.radio(
@@ -62,18 +33,7 @@ class Configuration:
         )
         return selected_option
 
-    def save_configuration(self):
-        if st.button("Start Chatting!", type="primary"):
-            st.session_state.is_configured = True
-            st.rerun()
-
-    def display_title(self):
-        st.title("✨ Let's customize your experience!")
-
     def run(self):
-        self.display_title()
-        self.apply_custom_styles()
-
         self.selected_topic = self.make_selection(
             "What do you want to talk about?",
             self.topics,
@@ -86,5 +46,3 @@ class Configuration:
             "Which dialogue pace do you prefer?",
             self.dialogue_paces,
         )
-
-        self.save_configuration()

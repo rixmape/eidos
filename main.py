@@ -1,19 +1,10 @@
 import streamlit as st
 
-from chatbot import ChatbotAgent
-from configuration import Configuration
+st.set_page_config(page_title="Welcome to Eidos!", page_icon="🏠")
+st.title("🏠 Welcome to Eidos!")
 
-if __name__ == "__main__":
-    st.set_page_config(page_title="Eidos", page_icon="🧐")
-
-    state = st.session_state
-    state.setdefault("is_configured", False)
-    state.setdefault("chatbot", None)
-
-    if not state.is_configured:
-        state.config = Configuration()
-        state.config.run()
-    else:
-        if not state.chatbot:
-            state.chatbot = ChatbotAgent(state.config)
-        state.chatbot.run()
+st.page_link(
+    "pages/1_✨_Configuration.py",
+    label="Configuration",
+    icon="✨",
+)
