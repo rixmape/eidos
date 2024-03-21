@@ -1,5 +1,6 @@
 parameters:
-  language_model: gpt-4-0125-preview
+  language_model_main: gpt-4-0125-preview
+  language_model_helper: gpt-3.5-turbo
   embedding_model: text-embedding-3-small
   database_path: chromadb
   allowed_file_types: [txt, md]

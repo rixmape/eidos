@@ -19,13 +19,16 @@ class ChatbotPipeline:
         self.config = configuration
         self.document_manager = DocumentManager(configuration)
 
-        self.initialize_language_model()
+        self.initialize_language_models()
         self.initialize_role_prompt()
         self.initialize_chains()
 
-    def initialize_language_model(self):
-        self.language_model = ChatOpenAI(
-            model=self.config.parameters["language_model"],
+    def initialize_language_models(self):
+        self.language_model_main = ChatOpenAI(
+            model=self.config.parameters["language_model_main"],
+        )
+        self.language_model_helper = ChatOpenAI(
+            model=self.config.parameters["language_model_helper"],
         )
 
     def initialize_role_prompt(self):
@@ -48,7 +51,7 @@ class ChatbotPipeline:
     def create_chain_router(self):
         template = self.config.templates["chain_router"]
         prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.language_model | StrOutputParser()
+        return prompt_template | self.language_model_helper | StrOutputParser()
 
     def create_chain_query_expansion(self):
         template = self.config.templates["query_expansion"]
@@ -59,7 +62,7 @@ class ChatbotPipeline:
                 ("human", "{question}"),
             ]
         )
-        return prompt_template | self.language_model | StrOutputParser()
+        return prompt_template | self.language_model_helper | StrOutputParser()
 
     def create_chain_without_documents(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -69,7 +72,7 @@ class ChatbotPipeline:
                 ("human", "{question}"),
             ]
         )
-        return prompt_template | self.language_model | StrOutputParser()
+        return prompt_template | self.language_model_main | StrOutputParser()
 
     def create_chain_with_documents(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -91,7 +94,7 @@ class ChatbotPipeline:
         return (
             RunnablePassthrough.assign(context=context)
             | prompt_template
-            | self.language_model
+            | self.language_model_main
             | StrOutputParser()
         )
 
