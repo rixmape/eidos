@@ -40,7 +40,6 @@ class ChatbotPipeline:
 
     def initialize_chains(self):
         self.chain_router = self.create_chain_router()
-        self.chain_initial_message = self.create_chain_initial_message()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_without_documents = self.create_chain_without_documents()
         self.chain_with_documents = self.create_chain_with_documents()
@@ -48,11 +47,6 @@ class ChatbotPipeline:
 
     def create_chain_router(self):
         template = self.config.templates["chain_router"]
-        prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.language_model | StrOutputParser()
-
-    def create_chain_initial_message(self):
-        template = self.config.templates["initial_message"]
         prompt_template = PromptTemplate.from_template(template)
         return prompt_template | self.language_model | StrOutputParser()
 
@@ -124,13 +118,6 @@ class ChatbotPipeline:
         )
         return f"Use the following documents to answer the query.\n\n{context}"
 
-    def get_initial_message(self):
-        return self.chain_initial_message.invoke(
-            {
-                "prompt": self.role_prompt,
-            }
-        )
-
     def get_response(self, question, history):
         return self.complete_chain.invoke(
             {
@@ -145,7 +132,9 @@ class ChatbotAgent:
         self.config = configuration
         self.pipeline = ChatbotPipeline(configuration)
         self.chat_history = StreamlitChatMessageHistory()
-        self.initialize_chat_history()
+
+        if not self.chat_history.messages:
+            self.add_initial_message()
 
     def set_style(self):
         style = """
@@ -157,10 +146,13 @@ class ChatbotAgent:
         """
         st.markdown(style, unsafe_allow_html=True)
 
-    def initialize_chat_history(self):
-        initial_message = self.pipeline.get_initial_message()
-        if not self.chat_history.messages:
-            self.chat_history.add_ai_message(initial_message)
+    def add_initial_message(self):
+        template = self.config.templates["greeting"]
+        claims = "\n".join(
+            [f"- {claim}" for claim in self.config.selected_topic["claims"]]
+        )
+        initial_message = template.format(claims=claims)
+        self.chat_history.add_ai_message(initial_message)
 
     def display_messages(self):
         for message in self.chat_history.messages:
