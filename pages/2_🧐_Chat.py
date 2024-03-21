@@ -5,11 +5,15 @@ from helpers import page_utils
 
 page_utils.initialize_page("🧐", "Hello, I'm Eidos!")
 
-st.session_state.setdefault("chatbot", None)
-if not st.session_state.chatbot:
-    st.session_state.chatbot = ChatbotAgent(st.session_state.config)
-st.session_state.chatbot.run()
+state = st.session_state
+state.setdefault("chatbot", None)
 
-st.divider()
-next_page = "pages/3_📝_Survey.py"
-st.page_link(next_page, label="💬 Answer survey form")
+if not state.chatbot:
+    state.chatbot = ChatbotAgent(state.config)
+
+state.chatbot.run()
+
+if state.chatbot.prompt_count >= state.config.parameters["min_prompt_count"]:
+    st.divider()
+    next_page = "pages/3_📝_Survey.py"
+    st.page_link(next_page, label="💬 Answer survey form")

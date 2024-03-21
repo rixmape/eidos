@@ -135,6 +135,7 @@ class ChatbotAgent:
         self.config = configuration
         self.pipeline = ChatbotPipeline(configuration)
         self.chat_history = StreamlitChatMessageHistory()
+        self.prompt_count = 0
 
         if not self.chat_history.messages:
             self.add_initial_message()
@@ -159,15 +160,11 @@ class ChatbotAgent:
 
             self.chat_history.add_user_message(query)
             self.chat_history.add_ai_message(answer)
+            self.prompt_count += 1
             st.rerun()
 
     def check_prompt_limit(self):
-        prompts = [
-            message.content
-            for message in self.chat_history.messages
-            if message.type == "human"
-        ]
-        if len(prompts) >= self.config.parameters["max_prompt_count"]:
+        if self.prompt_count >= self.config.parameters["max_prompt_count"]:
             message = (
                 "You have reached the limit."
                 " Please answer the survey form now."
