@@ -58,7 +58,8 @@ def set_page_style():
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
-    div[data-testid="stChatMessage"] {
+    div[data-testid="stChatMessage"],
+    div[data-testid="stNotificationContentInfo"] div {
         gap: 1rem;
     }
     div[data-testid="stPageLink"] div {

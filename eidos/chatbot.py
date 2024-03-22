@@ -169,6 +169,10 @@ class ChatbotAgent:
             return True
         return False
 
+    def display_info_message(self):
+        if len(self.chat_history.messages) == 1:
+            st.info(self.config.tips["first_message"], icon="ℹ️")
+
     def run(self):
         self.display_messages()
 
@@ -176,3 +180,4 @@ class ChatbotAgent:
             return
 
         self.handle_input()
+        self.display_info_message()

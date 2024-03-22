@@ -34,9 +34,9 @@ templates:
     The expanded statement should follow this format:
 
     ```
-    {expanded_statement}
+    <expanded_statement>
 
-    Keywords: {keywords}
+    Keywords: <keywords_separated_by_commas>
     ```
 
   chain_router: |
@@ -49,6 +49,10 @@ templates:
     ```
 
     Next Step:
+
+tips:
+  first_message: |
+    Share an opinion. We'll explore it together for the entire conversation.
 
 topics:
   - branch: ethics
