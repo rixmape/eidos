@@ -5,12 +5,8 @@ from langchain_community.chat_message_histories.streamlit import (
     StreamlitChatMessageHistory,
 )
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    MessagesPlaceholder,
-    PromptTemplate,
-)
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
@@ -24,11 +20,8 @@ class ChatbotPipeline:
         self.initialize_llms()
         self.initialize_main_instruction()
 
-        self.chain_router = self.create_chain_router()
         self.chain_query_expansion = self.create_chain_query_expansion()
-        self.chain_without_documents = self.create_chain_without_documents()
         self.chain_with_documents = self.create_chain_with_documents()
-        self.complete_chain = self.create_complete_chain()
 
     def initialize_llms(self):
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
@@ -44,11 +37,6 @@ class ChatbotPipeline:
 
         self.main_instruction = "\n".join(messages)
 
-    def create_chain_router(self):
-        template = self.config.templates["chain_router"]
-        prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.llm_helper | StrOutputParser()
-
     def create_chain_query_expansion(self):
         system_template = self.main_instruction
         human_template = self.config.templates["query_expansion"]
@@ -61,19 +49,17 @@ class ChatbotPipeline:
         )
         return prompt_template | self.llm_helper | StrOutputParser()
 
-    def create_chain_without_documents(self):
-        system_template = self.main_instruction
-        human_template = "{question}"
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_template),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
-            ]
-        )
-        return prompt_template | self.llm_main | StrOutputParser()
-
     def create_chain_with_documents(self):
+        chain_context = (
+            {
+                "question": itemgetter("question"),
+                "history": itemgetter("history"),
+            }
+            | self.chain_query_expansion
+            | self.document_manager.retriever
+            | self.format_documents
+        )
+
         system_template = f"{self.main_instruction}\n{{context}}"
         human_template = "{question}"
         prompt_template = ChatPromptTemplate.from_messages(
@@ -83,35 +69,14 @@ class ChatbotPipeline:
                 ("human", human_template),
             ]
         )
-        context = (
-            {
-                "question": itemgetter("question"),
-                "history": itemgetter("history"),
-            }
-            | self.chain_query_expansion
-            | self.document_manager.retriever
-            | self.format_documents
-        )
-        return (
-            RunnablePassthrough.assign(context=context)
-            | prompt_template
-            | self.llm_main
-            | StrOutputParser()
-        )
 
-    def create_complete_chain(self):
-        return {
-            "question": itemgetter("question"),
-            "history": itemgetter("history"),
-            "action": self.chain_router,
-        } | RunnableLambda(self.next_chain)
+        chain_answer = prompt_template | self.llm_main | StrOutputParser()
 
-    def next_chain(self, input):
-        return (
-            self.chain_with_documents
-            if "fetch" in input["action"]
-            else self.chain_without_documents
-        )
+        return RunnableParallel(
+            question=itemgetter("question"),
+            history=itemgetter("history"),
+            context=chain_context,
+        ).assign(answer=chain_answer)
 
     def format_documents(self, docs):
         context = "\n\n".join(
@@ -123,7 +88,7 @@ class ChatbotPipeline:
         return f"{self.config.templates['context']}\n{context}"
 
     def get_response(self, question, history):
-        return self.complete_chain.invoke(
+        return self.chain_with_documents.invoke(
             {
                 "question": question,
                 "history": history.messages,
@@ -152,7 +117,8 @@ class ChatbotAgent:
     def handle_input(self):
         if query := st.chat_input(key="chat_input"):
             st.chat_message("human").write(query)
-            answer = self.pipeline.get_response(query, self.chat_history)
+            response = self.pipeline.get_response(query, self.chat_history)
+            answer = response["answer"]
             st.chat_message("ai").write(answer)
 
             self.chat_history.add_user_message(query)

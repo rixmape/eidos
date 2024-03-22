@@ -53,21 +53,6 @@ templates:
     {question}
     ```
 
-  chain_router: |
-    Assume the role of a philosophy professor. Your task is to determine whether fetching documents from a knowledge database is necessary to adequately address a given message. If the message demands fetching of references, respond with `fetch`. For general inquiries, use `continue`. Provide only one of these keywords, without backticks, in your response.
-
-    Only fetch documents if the message:
-
-    - involves nuanced or specific philosophical concepts
-    - requires accurate and credible references
-    - demands in-depth analysis or historical context
-
-    Here's the message you need to evaluate:
-
-    ```
-    {question}
-    ```
-
   context: |
     Use the following documents to answer the query. Ignore any irrelevant document or section to focus on the user's query.
 
