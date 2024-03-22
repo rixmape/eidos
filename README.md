@@ -1,27 +1,58 @@
-# Eidos
+# Eidos: Examining Beliefs Through Dialogue
 
-Eidos is a web app designed to facilitate learning in philosophy through AI-driven Socratic dialogue. The ambition is to make the study of philosophy more accessible, interactive, and reflective. This app utilizes technologies such as a large language model for generating responses, a vector database of publicly-available philosophy texts for reference, and customization features for a personalized user experience.
+## Problem Statement
+
+Many individuals hold beliefs without fully examining their foundations or considering alternative viewpoints. This lack of critical examination can lead to inconsistencies in thought, hindering personal growth and understanding. Traditional methods of learning often do not provide the personalized, interactive feedback necessary for deep philosophical inquiry.
+
+## Proposed Solution
+
+Eidos is a web application designed to engage users in a dialogue using the Socratic method. This approach encourages users to articulate their beliefs, confront inconsistencies, and consider alternative perspectives. By simulating a personalized philosophical conversation, Eidos aims to deepen the user's understanding and refine their beliefs.
+
+## Key Features
+
+- Engages users in deep discussions to explore their beliefs.
+- Helps find and reflect on any inconsistencies in their beliefs.
+- Introduces other viewpoints for comparison.
+- Adapts conversations to individual user responses.
+- Uses philosophical texts for factual references.
+
+## Socratic Method Model
+
+The AI-driven Socratic method model in Eidos follows a structured process:
 
 ```mermaid
 ---
-title: AI-Driven Socratic Dialogue
-
+title: AI-Driven Socratic Method Model
 ---
 flowchart TD
-    A[Eidos suggests some definitions to explore] --> B[User chooses a definition or proposes a new one]
-    B --> C{Check prompt limit}
-    C -- Within Limit --> D[Fetch relevant documents for reference]
-    D --> E{Inconsistent definition?}
-    E -- Yes --> F[Point out inconsistency
-    and ask for clarification]
-    F --> G[User refines definition or
-    provides some examples]
-    G --> C
-    E -- No --> H[Explore deeper implications
-    and ask for examples]
-    H --> G
-    C -- Limit Reached --> I[Show reply to last prompt]
-    I --> J[Summarize dialogue]
-    J --> K[Recommend further reading]
-    K --> Z[End dialogue]
+  A[Request Belief] --> B[Receive User Belief]
+  B --> C{Check Dialogue Limit}
+
+  C -- Not Reached --> D[Reference Philosophical Texts]
+  D --> E{Identify Inconsistencies}
+
+  E -- Found --> F[Provide Contextual Info]
+  F --> G[Highlight Inconsistency]
+  G --> H[Request Clarification]
+  H --> I[User Clarifies/Examples]
+  I --> C
+
+  E -- None --> J[Dive Deeper]
+  J --> K[Suggest Alternative]
+  K --> L[Request User to Defend Belief]
+  L --> I
+
+  C -- Limit Reached --> M[Respond to Last Input]
+  M --> N[Dialogue Summary]
+  N --> O[Suggest Further Reading]
+  O --> P[Conclude Dialogue]
 ```
+
+1. **Request Belief**: The dialogue begins with the AI asking the user to state a belief.
+2. **Receive User Belief**: The user shares their belief, initiating the dialogue.
+3. **Check Dialogue Limit**: Ensures dialogues remain focused and concise.
+   - **Not Reached**: Continues the dialogue by referencing philosophical texts to identify inconsistencies.
+   - **Limit Reached**: Concludes the dialogue with a summary and suggestions for further reading.
+4. **Identify Inconsistencies**: The AI identifies any inconsistencies in the user's belief by referencing philosophical texts.
+   - **Found**: Provides contextual information and asks the user to clarify or provide examples.
+   - **None**: Dives deeper into the topic by suggesting alternative perspectives and asking the user to defend their belief.
