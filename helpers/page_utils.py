@@ -39,8 +39,8 @@ def set_page_style():
     div[data-testid="stButton"] {
         text-align: right;
     }
-    label[data-baseweb="radio"] {
-        border: 1px solid rgb(50, 50, 50) !important;
+    div.row-widget label[data-baseweb="radio"] {
+        border: 1px solid rgb(50, 50, 50);
         padding: 1rem 1rem;
         border-radius: 0.5rem;
         margin: 0;
@@ -59,15 +59,26 @@ def set_page_style():
         gap: 1rem;
     }
     div[data-testid="stChatMessage"] {
-        gap: 1rem !important;
+        gap: 1rem;
     }
     div[data-testid="stPageLink"] div {
         align-items: flex-end;
     }
-    a[data-testid="stPageLink-NavLink"] {
-        border: 1px solid rgb(50, 50, 50) !important;
+    a[data-testid="stPageLink-NavLink"],
+    button[data-testid="baseButton-secondary"] {
+        border: 1px solid rgb(50, 50, 50);
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
+        background-color: rgb(19, 23, 32) !important;
+        margin: 0;
+        min-height: 50px;
+    }
+    a[data-testid="stPageLink-NavLink"]:hover *,
+    button[data-testid="baseButton-secondary"]:hover * {
+        color: rgb(255, 75, 75);
+    }
+    a[data-testid="stPageLink-NavLink"]:hover {
+        border-color: rgb(255, 75, 75);
     }
     </style>
     """
