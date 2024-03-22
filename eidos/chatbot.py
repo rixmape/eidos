@@ -21,25 +21,33 @@ class ChatbotPipeline:
         self.initialize_main_instruction()
 
         self.chain_query_expansion = self.create_chain_query_expansion()
-        self.chain_with_documents = self.create_chain_with_documents()
+        self.chain_context = self.create_chain_context()
+        self.chain_answer = self.create_chain_answer()
+        self.chain_complete = self.create_chain_complete()
 
     def initialize_llms(self):
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
         self.llm_helper = ChatOpenAI(model=self.config.parameters["llm_helper"])
 
     def initialize_main_instruction(self):
-        messages = [
-            self.config.templates["role"],
+        instructions = [
             self.config.selected_topic["instruction"],
             self.config.selected_language_style["instruction"],
             self.config.selected_dialogue_pace["instruction"],
         ]
+        user_preferences = [
+            f"{i}. {instruction}"
+            for i, instruction in enumerate(instructions, start=1)
+        ]
 
-        self.main_instruction = "\n".join(messages)
+        template = self.config.templates["main_instruction"]
+        self.main_instruction = template.format(
+            additional_instructions="\n".join(user_preferences)
+        )
 
     def create_chain_query_expansion(self):
-        system_template = self.main_instruction
-        human_template = self.config.templates["query_expansion"]
+        system_template = self.config.templates["query_expansion"]
+        human_template = "{question}"
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", system_template),
@@ -49,7 +57,19 @@ class ChatbotPipeline:
         )
         return prompt_template | self.llm_helper | StrOutputParser()
 
-    def create_chain_with_documents(self):
+    def create_chain_answer(self):
+        system_template = self.main_instruction
+        human_template = self.config.templates["answer"]
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_template),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", human_template),
+            ]
+        )
+        return prompt_template | self.llm_main | StrOutputParser()
+
+    def create_chain_context(self):
         chain_context = (
             {
                 "question": itemgetter("question"),
@@ -60,35 +80,20 @@ class ChatbotPipeline:
             | self.format_documents
         )
 
-        system_template = f"{self.main_instruction}\n{{context}}"
-        human_template = "{question}"
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_template),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
-            ]
-        )
+        return chain_context
 
-        chain_answer = prompt_template | self.llm_main | StrOutputParser()
-
+    def create_chain_complete(self):
         return RunnableParallel(
             question=itemgetter("question"),
             history=itemgetter("history"),
-            context=chain_context,
-        ).assign(answer=chain_answer)
+            context=self.chain_context,
+        ).assign(answer=self.chain_answer)
 
     def format_documents(self, docs):
-        context = "\n\n".join(
-            [
-                f"Document {i}:\n\n'''\n{doc.page_content}\n'''"
-                for i, doc in enumerate(docs, start=1)
-            ]
-        )
-        return f"{self.config.templates['context']}\n{context}"
+        return "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
 
     def get_response(self, question, history):
-        return self.chain_with_documents.invoke(
+        return self.chain_complete.invoke(
             {
                 "question": question,
                 "history": history.messages,
