@@ -74,7 +74,7 @@ def set_page_style():
     st.markdown(style, unsafe_allow_html=True)
 
 
-def initialize_page(icon: str, title: str):
+def initialize_page(icon: str, title: str, customize_style: bool = True):
     st.set_page_config(page_title=title, page_icon=icon)
     st.title(f"{icon} {title}")
 
@@ -83,4 +83,5 @@ def initialize_page(icon: str, title: str):
     if not st.session_state.visited_home:
         navigate_to_page("main")
 
-    set_page_style()
+    if customize_style:
+        set_page_style()

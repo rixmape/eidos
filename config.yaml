@@ -7,7 +7,7 @@ parameters:
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
-  min_prompt_count: 2
+  min_prompt_count: 0
   max_prompt_count: 3
 
 welcome_message: |
@@ -148,3 +148,13 @@ dialogue_paces:
     caption: Deep dive into philosophy with thorough analyses and reflections.
     instruction: |
       Provide comprehensive, detailed responses that delve deeply into philosophical concepts, ensuring thorough analysis and reflection. Emphasize length, allowing for extensive exploration and understanding of each topic. Always your response to one paragraph.
+
+# TODO: Improve the survey questions for better feedback
+survey:
+  open-ended:
+    - Describe your experience with the Socratic dialogue. Highlight any specific interactions.
+
+  likert-scale:
+    - I found the dialogues engaging and interesting.
+    - Eidos clarified complex concepts well.
+    - I would recommend Eidos to others.
