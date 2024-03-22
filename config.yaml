@@ -38,21 +38,13 @@ templates:
   query_expansion: |
     Your task is to rewrite the user's latest statement to add context and depth. Do not answer the user's statement directly. Instead, rewrite it only. The expanded statement should provide additional details or perspectives that were not initially mentioned but are relevant to the original statement. Conclude the revised statement with a list of ten pertinent keywords encompassing the expanded content.
 
-    Consider this example user statement:
+    The expanded statement should follow this format:
 
     ```
-    I think that art is a reflection of society's values and beliefs.
+    {expanded_statement}
+
+    Keywords: {keywords}
     ```
-
-    Here's the corresponding expanded statement:
-
-    ```
-    Art serves as a multifaceted mirror reflecting the intricate tapestry of societal values, beliefs, and cultural norms. It not only mirrors these elements but also actively participates in shaping and reshaping them through its profound influence on collective consciousness. Embedded within the fabric of art are layers of human experiences and emotions, intricately woven into its various forms and expressions.
-
-    Keywords: art, reflection, society, values, beliefs, cultural norms, influence, human experiences, emotions, historical periods, collective consciousness.
-    ```
-
-    Your task now is to rewrite the user's statement to add context and depth.
 
   chain_router: |
     Determine whether fetching specific documents from the knowledge database is necessary to adequately address the user's statement. If the statement demands the of references from philosophical texts, respond with `fetch`. For general inquiries, use `continue`. Provide only one of these keywords in your response.
