@@ -138,15 +138,11 @@ class ChatbotAgent:
         self.prompt_count = 0
 
         if not self.chat_history.messages:
-            self.add_initial_message()
+            self.add_greeting()
 
-    def add_initial_message(self):
-        template = self.config.templates["greeting"]
-        claims = "\n".join(
-            [f"- {claim}" for claim in self.config.selected_topic["claims"]]
-        )
-        initial_message = template.format(claims=claims)
-        self.chat_history.add_ai_message(initial_message)
+    def add_greeting(self):
+        greeting = self.config.templates["greeting"]
+        self.chat_history.add_ai_message(greeting)
 
     def display_messages(self):
         for message in self.chat_history.messages:

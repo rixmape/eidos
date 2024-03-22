@@ -23,14 +23,7 @@ welcome_message: |
   6. Fill-up the user survey form
 
 templates:
-  greeting: |
-    Greetings, fellow philosopher!
-
-    Do you believe in any of the following claims?
-
-    {claims}
-
-    Choose one or propose another, and let's start our journey!
+  greeting: What's something you believe to be true?
 
   role: |
     Assume the role of Socrates. Engage the user in dialogue to explore a philosophical claim. The goal is to encourage reflection and reasoning, guiding the user to think critically about the topic. Your responses should follow three steps. First, analyze the user's claim to understand their perspective. Then, present counterarguments or alternative viewpoints to encourage critical thinking. Finally, always end with a question! Remember, if the conversation strays from philosophy, guide it back to the subject at hand.
@@ -63,60 +56,36 @@ topics:
     caption: Navigate moral dilemmas and understand ethical behaviors' impacts.
     instruction: |
       The dialogue shall strictly focus on ethics or related fields of philosophy. In particular, explore ethical theories, moral dilemmas, and the consequences of ethical decisions. The goal is to enhance understanding of ethical principles and their application in real-world scenarios.
-    claims:
-      - Ethical actions are determined by their consequences.
-      - Moral values are relative to cultural norms.
-      - Ethical egoism is a valid moral theory.
 
   - branch: logic
     title: Reasoning and Argumentation
     caption: Learn to reason and construct arguments with logical precision.
     instruction: |
       The dialogue shall strictly focus on logic or related fields of philosophy. In particular, analyze logical fallacies, argument structures, and principles of deductive and inductive reasoning. The goal is to improve critical thinking skills and the ability to construct coherent arguments.
-    claims:
-      - All valid arguments are sound.
-      - Inductive reasoning is inherently unreliable.
-      - Logical fallacies are prevalent in everyday discourse.
 
   - branch: metaphysics
     title: Nature of Reality
     caption: Examine the essence of reality, being, and the universe's nature.
     instruction: |
       The dialogue shall strictly focus on metaphysics or related fields of philosophy. In particular, delve into the concepts of existence, causality, space and time, and the possibility of free will. The goal is to deepen the understanding of the fundamental nature of reality and existence.
-    claims:
-      - The universe has a predetermined fate.
-      - Free will is an illusion.
-      - Time is an illusion.
 
   - branch: epistemology
     title: Knowledge and Belief
     caption: Investigate how we acquire knowledge and its boundaries.
     instruction: |
       The dialogue shall strictly focus on epistemology or related fields of philosophy. In particular, discuss the sources and limits of knowledge, the nature of belief and justification, and the challenge of skepticism. The goal is to explore the basis of knowledge and its implications for understanding the world.
-    claims:
-      - Knowledge is justified true belief.
-      - Skepticism is an untenable position.
-      - Belief without evidence is irrational.
 
   - branch: aesthetics
     title: Art, Beauty, and Taste
     caption: Explore the philosophy of beauty and art's profound impact.
     instruction: |
       The dialogue shall strictly focus on aesthetics or related fields of philosophy. In particular, examine the nature of beauty, the interpretation of art, and the aesthetic experience. The goal is to appreciate the philosophical dimensions of art and beauty and their significance in human experience.
-    claims:
-      - Beauty is subjective.
-      - Art is a reflection of society's values and beliefs.
-      - The aesthetic value of art is independent of its moral value.
 
   - branch: politics
     title: Political Philosophy
     caption: Debate governance, rights, and societal duties philosophically.
     instruction: |
       The dialogue shall strictly focus on political philosophy or related fields of philosophy. In particular, debate theories of justice, governance, rights, and responsibilities within societies. The goal is to critically engage with political ideas and understand their impact on contemporary societal structures.
-    claims:
-      - Justice is the first virtue of social institutions.
-      - Political authority is justified by the consent of the governed.
-      - The state has no right to interfere in our private lives.
 
 language_styles:
   - title: casual
