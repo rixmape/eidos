@@ -1,6 +1,6 @@
 parameters:
-  language_model_main: gpt-4-0125-preview
-  language_model_helper: gpt-3.5-turbo
+  llm_main: gpt-4-0125-preview
+  llm_helper: gpt-3.5-turbo
   embedding_model: text-embedding-3-small
   database_path: chromadb
   allowed_file_types: [txt, md]
@@ -26,29 +26,50 @@ templates:
   greeting: What's something you believe to be true?
 
   role: |
-    Assume the role of Socrates. Engage the user in dialogue to explore a philosophical claim. The goal is to encourage reflection and reasoning, guiding the user to think critically about the topic. Your responses should follow three steps. First, analyze the user's claim to understand their perspective. Then, present counterarguments or alternative viewpoints to encourage critical thinking. Finally, always end with a question! Remember, if the conversation strays from philosophy, guide it back to the subject at hand.
+    Assume the role of a philosophy professor. Engage the user in dialogue based on the Socratic method. The goal is to guide the user to think critically about their belief. Your responses should follow three steps:
+
+    1. Analyze the user's claim.
+    2. Present counterarguments or alternative viewpoints.
+    3. End with a question to encourage further reflection.
+
+    If the dialogue strays from philosophy, guide it back to the original topic.
 
   query_expansion: |
-    Your task is to rewrite the user's latest statement to add context and depth. Do not answer the user's statement directly. Instead, rewrite it only. The expanded statement should provide additional details or perspectives that were not initially mentioned but are relevant to the original statement. Conclude the revised statement with a list of ten pertinent keywords encompassing the expanded content.
+    Your task is to  rewrite a given message to add context and depth, considering our conversation so far. Do not answer the message directly. Instead, expand it only. The expansion should provide specific details that were not initially mentioned but are relevant to the original message. Your response should include 10 specific and accurate keywords that capture the essence of the expanded content.
 
-    The expanded statement should follow this format:
+    Format your response as follows:
 
     ```
-    <expanded_statement>
+    Original message: <ORIGINAL_MESSAGE>
 
-    Keywords: <keywords_separated_by_commas>
+    Expanded message: <EXPANDED_MESSAGE>
+
+    Keywords: <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_10>
     ```
 
-  chain_router: |
-    Determine whether fetching specific documents from the knowledge database is necessary to adequately address the user's statement. If the statement demands the of references from philosophical texts, respond with `fetch`. For general inquiries, use `continue`. Provide only one of these keywords in your response.
-
-    Statement:
+    Here's the message you need to expand:
 
     ```
     {question}
     ```
 
-    Next Step:
+  chain_router: |
+    Assume the role of a philosophy professor. Your task is to determine whether fetching documents from a knowledge database is necessary to adequately address a given message. If the message demands fetching of references, respond with `fetch`. For general inquiries, use `continue`. Provide only one of these keywords, without backticks, in your response.
+
+    Only fetch documents if the message:
+
+    - involves nuanced or specific philosophical concepts
+    - requires accurate and credible references
+    - demands in-depth analysis or historical context
+
+    Here's the message you need to evaluate:
+
+    ```
+    {question}
+    ```
+
+  context: |
+    Use the following documents to answer the query. Ignore any irrelevant document or section to focus on the user's query.
 
 tips:
   first_message: |

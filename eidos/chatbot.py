@@ -1,17 +1,19 @@
-# fmt: off
-
 from operator import itemgetter
 
 import streamlit as st
-from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
+from langchain_community.chat_message_histories.streamlit import (
+    StreamlitChatMessageHistory,
+)
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    PromptTemplate,
+)
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
-
-# fmt: on
 
 
 class ChatbotPipeline:
@@ -19,19 +21,20 @@ class ChatbotPipeline:
         self.config = configuration
         self.document_manager = DocumentManager(configuration)
 
-        self.initialize_language_models()
-        self.initialize_role_prompt()
-        self.initialize_chains()
+        self.initialize_llms()
+        self.initialize_main_instruction()
 
-    def initialize_language_models(self):
-        self.language_model_main = ChatOpenAI(
-            model=self.config.parameters["language_model_main"],
-        )
-        self.language_model_helper = ChatOpenAI(
-            model=self.config.parameters["language_model_helper"],
-        )
+        self.chain_router = self.create_chain_router()
+        self.chain_query_expansion = self.create_chain_query_expansion()
+        self.chain_without_documents = self.create_chain_without_documents()
+        self.chain_with_documents = self.create_chain_with_documents()
+        self.complete_chain = self.create_complete_chain()
 
-    def initialize_role_prompt(self):
+    def initialize_llms(self):
+        self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
+        self.llm_helper = ChatOpenAI(model=self.config.parameters["llm_helper"])
+
+    def initialize_main_instruction(self):
         messages = [
             self.config.templates["role"],
             self.config.selected_topic["instruction"],
@@ -39,47 +42,45 @@ class ChatbotPipeline:
             self.config.selected_dialogue_pace["instruction"],
         ]
 
-        self.role_prompt = "\n".join(messages)
-
-    def initialize_chains(self):
-        self.chain_router = self.create_chain_router()
-        self.chain_query_expansion = self.create_chain_query_expansion()
-        self.chain_without_documents = self.create_chain_without_documents()
-        self.chain_with_documents = self.create_chain_with_documents()
-        self.complete_chain = self.create_complete_chain()
+        self.main_instruction = "\n".join(messages)
 
     def create_chain_router(self):
         template = self.config.templates["chain_router"]
         prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.language_model_helper | StrOutputParser()
+        return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_query_expansion(self):
-        template = self.config.templates["query_expansion"]
+        system_template = self.main_instruction
+        human_template = self.config.templates["query_expansion"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", template),
+                ("system", system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", "{question}"),
+                ("human", human_template),
             ]
         )
-        return prompt_template | self.language_model_helper | StrOutputParser()
+        return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_without_documents(self):
+        system_template = self.main_instruction
+        human_template = "{question}"
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.role_prompt),
+                ("system", system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", "{question}"),
+                ("human", human_template),
             ]
         )
-        return prompt_template | self.language_model_main | StrOutputParser()
+        return prompt_template | self.llm_main | StrOutputParser()
 
     def create_chain_with_documents(self):
+        system_template = f"{self.main_instruction}\n{{context}}"
+        human_template = "{question}"
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", f"{self.role_prompt}\n\n{{context}}"),
+                ("system", system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", "{question}"),
+                ("human", human_template),
             ]
         )
         context = (
@@ -94,15 +95,15 @@ class ChatbotPipeline:
         return (
             RunnablePassthrough.assign(context=context)
             | prompt_template
-            | self.language_model_main
+            | self.llm_main
             | StrOutputParser()
         )
 
     def create_complete_chain(self):
         return {
-            "action": self.chain_router,
             "question": itemgetter("question"),
             "history": itemgetter("history"),
+            "action": self.chain_router,
         } | RunnableLambda(self.next_chain)
 
     def next_chain(self, input):
@@ -115,11 +116,11 @@ class ChatbotPipeline:
     def format_documents(self, docs):
         context = "\n\n".join(
             [
-                f'Document {i}:\n\n"""\n{doc.page_content}\n"""'
+                f"Document {i}:\n\n'''\n{doc.page_content}\n'''"
                 for i, doc in enumerate(docs, start=1)
             ]
         )
-        return f"Use the following documents to answer the query.\n\n{context}"
+        return f"{self.config.templates['context']}\n{context}"
 
     def get_response(self, question, history):
         return self.complete_chain.invoke(
