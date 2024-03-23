@@ -7,7 +7,7 @@ parameters:
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
-  min_prompt_count: 3
+  min_prompt_count: 0
   max_prompt_count: 6
 
 welcome_message: |

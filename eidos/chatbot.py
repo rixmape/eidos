@@ -1,3 +1,4 @@
+import json
 from operator import itemgetter
 
 import streamlit as st
@@ -116,6 +117,12 @@ class ChatbotAgent:
     def display_messages(self):
         for message in self.chat_history.messages:
             st.chat_message(message.type).markdown(message.content)
+
+    def get_chat_messages(self):
+        return [
+            {"type": message.type, "content": message.content}
+            for message in self.chat_history.messages
+        ]
 
     def handle_input(self):
         if query := st.chat_input(key="chat_input"):
