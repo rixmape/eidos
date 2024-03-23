@@ -1,5 +1,5 @@
 parameters:
-  llm_main: gpt-4-0125-preview
+  llm_main: gpt-4
   llm_helper: gpt-3.5-turbo
   embedding_model: text-embedding-3-small
   database_path: chromadb
@@ -7,63 +7,45 @@ parameters:
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
-  min_prompt_count: 0
-  max_prompt_count: 3
+  min_prompt_count: 3
+  max_prompt_count: 6
 
 welcome_message: |
   This innovative web app uses artificial intelligence to facilitate discussions on philosophy.
 
-  ### How to Use Eidos
-
-  1. Select a topic
-  2. Customize experience
-  3. Engage in dialogue
-  4. Download the conversation
-  5. Answer three multiple-choice questions
-  6. Fill-up the user survey form
-
 templates:
-  greeting: What's something you believe to be true?
+  greeting: |
+    What's something you believe to be true?
 
-  main_instruction: |
-    Assume the role of a philosophy professor talking. Engage the user in dialogue based on the Socratic method. The goal is to guide the user to think critically about their belief. If the dialogue strays from philosophy, guide it back to the original topic.
-
-    Your responses should follow three steps:
-
-    1. Analyze the user's claim.
-    2. Present counterarguments or alternative viewpoints.
-    3. End with a question to encourage further reflection.
-
-    Your response must follow the following criteria:
+  system: |
+    Assume the role of a philosopher. We are exchanging SMS messages using the Socratic method. Help me understand my beliefs, address their inconsistencies, and consider other perspectives. If I stray from philosophy, gently guide me back to the original topic.
 
     {additional_instructions}
 
-    Use the following documents to answer the query. Ignore any irrelevant document or section to focus on the user's query.
+    Before replying, read and understand the texts below. Use them in the conversation if they relate to my last message. If not, use your own knowledge to lead the conversation.
 
     {{context}}
 
   query_expansion: |
-    Your task is to rewrite the last user's message to add context and depth, considering our conversation so far. Do not answer the message directly. Instead, expand it only. The expansion should provide specific details that were not initially mentioned but are relevant to the original message. Your response should include 10 specific and accurate keywords that capture the essence of the expanded content.
+    Rewrite my last message to add context and depth relevant to our conversation. Do not answer the last message directly. Instead, expand it only. The revision should have more details that were not initially mentioned. Finally, conclude with 20 specific keywords or jargons related to the expanded content.
 
     Format your response as follows:
 
     ```
     <EXPANDED_MESSAGE>
 
-    <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_10>
+    <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_20>
     ```
 
   answer: |
-    Within the context of our dialogue, your task is to check for any inconsistencies in the user's statement. In particular, identify any logical fallacies, unsupported claims, or contradictions to previous statements.
+    Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, explain the inconsistency and ask me for clarification. If the reply is consistent, share your thoughts and ask me a follow-up question. For each case, your analysis should be followed by a single question only.
 
-    If any inconsistencies are present, provide a background explanation to point out the inconsistency and ask the user for clarification.
+    {additional_instructions}
 
-    If the statement is consistent, explore the deeper implication of the statement and ask a follow-up question to deepen the conversation.
-
-    Here's the statement you need to analyze:
+    Here's the reply you need to consider:
 
     ```
-    {question}
+    {{question}}
     ```
 
 tips:
@@ -73,62 +55,44 @@ tips:
 topics:
   - branch: ethics
     title: Moral Problems
-    caption: Navigate moral dilemmas and understand ethical behaviors' impacts.
+    caption: Understand impact of ethical behaviors.
     instruction: |
-      The dialogue shall strictly focus on ethics or related fields of philosophy. In particular, explore ethical theories, moral dilemmas, and the consequences of ethical decisions. The goal is to enhance understanding of ethical principles and their application in real-world scenarios.
+      Focus only on ethics. Help me enhance my understanding of moral principles and their practical application.
+
+  - branch: aesthetics
+    title: Art and Beauty
+    caption: Explore the profound impact of art and beauty.
+    instruction: |
+      Focus only on aesthetics. Help me understand the concepts of art, beauty, and taste.
 
   - branch: logic
     title: Reasoning and Argumentation
-    caption: Learn to reason and construct arguments with logical precision.
+    caption: Learn to reason with logical precision.
     instruction: |
-      The dialogue shall strictly focus on logic or related fields of philosophy. In particular, analyze logical fallacies, argument structures, and principles of deductive and inductive reasoning. The goal is to improve critical thinking skills and the ability to construct coherent arguments.
-
-  - branch: metaphysics
-    title: Nature of Reality
-    caption: Examine the essence of reality, being, and the universe's nature.
-    instruction: |
-      The dialogue shall strictly focus on metaphysics or related fields of philosophy. In particular, delve into the concepts of existence, causality, space and time, and the possibility of free will. The goal is to deepen the understanding of the fundamental nature of reality and existence.
+      Focus only on logic. Help me improve my critical thinking skills and the ability to construct clear and coherent arguments.
 
   - branch: epistemology
     title: Knowledge and Belief
-    caption: Investigate how we acquire knowledge and its boundaries.
+    caption: Investigate how we acquire knowledge.
     instruction: |
-      The dialogue shall strictly focus on epistemology or related fields of philosophy. In particular, discuss the sources and limits of knowledge, the nature of belief and justification, and the challenge of skepticism. The goal is to explore the basis of knowledge and its implications for understanding the world.
-
-  - branch: aesthetics
-    title: Art, Beauty, and Taste
-    caption: Explore the philosophy of beauty and art's profound impact.
-    instruction: |
-      The dialogue shall strictly focus on aesthetics or related fields of philosophy. In particular, examine the nature of beauty, the interpretation of art, and the aesthetic experience. The goal is to appreciate the philosophical dimensions of art and beauty and their significance in human experience.
-
-  - branch: politics
-    title: Political Philosophy
-    caption: Debate governance, rights, and societal duties philosophically.
-    instruction: |
-      The dialogue shall strictly focus on political philosophy or related fields of philosophy. In particular, debate theories of justice, governance, rights, and responsibilities within societies. The goal is to critically engage with political ideas and understand their impact on contemporary societal structures.
+      Focus only on epistemology. Help me explore the basis of knowledge and its implications for understanding the world.
 
 language_styles:
-  - title: casual
-    caption: Discuss philosophy in everyday language, making it accessible.
+  - title: quick and casual
+    caption: Discuss in everyday language.
     instruction: |
-      Employ relatable, everyday language to demystify philosophical concepts for a broader audience. Simplify intricate ideas to their core components, ensuring accessibility while preserving the integrity of philosophical thought.
+      I can only understand basic English. My vocabulary is also limited. Therefore, use short sentences. Avoid explanations. Use everyday language like you would in a real SMS message.
 
-  - title: formal
-    caption: Engage in precise, academic-level philosophical discussions.
-    instruction: |
-      Utilize a formal tone, employing precise academic terminology and well-structured arguments. Strive for clear, in-depth explanations and analyses, ensuring that discussions adhere to scholarly standards of argumentation and evidence.
+      Respond in 3 sentences using this format:
 
-# TODO: Update prompts for consistent response lengths: quick-paced (4 sentences), in-depth (6 sentences)
-dialogue_paces:
-  - title: fast-paced
-    caption: Swiftly explore philosophical ideas with quick insights.
-    instruction: |
-      Maintain brevity in responses, aiming for quick, sharp insights into philosophical ideas. Prioritize speed and clarity to foster a rapid, interactive dialogue. Always limit your response to two short sentences.
+      1. Start with a paraphrased version of my last message.
+      2. Provide your response.
+      3. End with a question to continue the conversation.
 
-  - title: in-depth
-    caption: Deep dive into philosophy with thorough analyses and reflections.
+  - title: in-depth and formal
+    caption: Engage in academic-level discussions.
     instruction: |
-      Provide comprehensive, detailed responses that delve deeply into philosophical concepts, ensuring thorough analysis and reflection. Emphasize length, allowing for extensive exploration and understanding of each topic. Always your response to one paragraph.
+      I understands jargons and complex concepts. So, feel free to use technical terms. However, I prefer readable and short response. Limit your response to 4 short sentences.
 
 # TODO: Improve the survey questions for better feedback
 survey:

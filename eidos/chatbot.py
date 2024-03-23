@@ -18,7 +18,7 @@ class ChatbotPipeline:
         self.document_manager = DocumentManager(configuration)
 
         self.initialize_llms()
-        self.initialize_main_instruction()
+        self.initialize_templates()
 
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
@@ -29,20 +29,20 @@ class ChatbotPipeline:
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
         self.llm_helper = ChatOpenAI(model=self.config.parameters["llm_helper"])
 
-    def initialize_main_instruction(self):
+    def initialize_templates(self):
         instructions = [
-            self.config.selected_topic["instruction"],
-            self.config.selected_language_style["instruction"],
-            self.config.selected_dialogue_pace["instruction"],
-        ]
-        user_preferences = [
-            f"{i}. {instruction}"
-            for i, instruction in enumerate(instructions, start=1)
+            self.config.selected_topic["instruction"].strip(),
+            self.config.selected_language_style["instruction"].strip(),
         ]
 
-        template = self.config.templates["main_instruction"]
-        self.main_instruction = template.format(
-            additional_instructions="\n".join(user_preferences)
+        template = self.config.templates["system"]
+        self.system_template = template.format(
+            additional_instructions=" ".join(instructions)
+        )
+
+        template = self.config.templates["answer"]
+        self.answer_template = template.format(
+            additional_instructions=" ".join(instructions)
         )
 
     def create_chain_query_expansion(self):
@@ -58,13 +58,11 @@ class ChatbotPipeline:
         return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_answer(self):
-        system_template = self.main_instruction
-        human_template = self.config.templates["answer"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", system_template),
+                ("system", self.system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
+                ("human", self.answer_template),
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()

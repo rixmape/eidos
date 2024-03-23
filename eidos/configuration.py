@@ -42,7 +42,3 @@ class Configuration:
             "How do you want me to respond?",
             self.language_styles,
         )
-        self.selected_dialogue_pace = self.make_selection(
-            "Which dialogue pace do you prefer?",
-            self.dialogue_paces,
-        )
