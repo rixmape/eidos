@@ -14,7 +14,16 @@ class SurveyPage:
         self.state.setdefault("survey_form", None)
 
     def initialize_page(self):
-        page_utils.initialize_page("📝", "Share your experience")
+        custom_style = """
+        div[role="radiogroup"] {
+            grid-template-columns: repeat(1, 1fr) !important;
+        }
+        """
+        page_utils.initialize_page(
+            "📝",
+            "Share your experience",
+            custom_style=custom_style,
+        )
 
     def run_survey_form(self):
         if not self.state.survey_form:

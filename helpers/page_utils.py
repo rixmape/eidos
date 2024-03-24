@@ -30,7 +30,7 @@ def navigate_to_page(target_page: str):
     raise ValueError(f"{target_page} not found. Must be one of {page_names}")
 
 
-def set_page_style():
+def set_page_style(customize_style: str = ""):
     """
     Set custom CSS styles for the page
     """
@@ -81,12 +81,14 @@ def set_page_style():
     a[data-testid="stPageLink-NavLink"]:hover {
         border-color: rgb(255, 75, 75);
     }
+    {customize_style}
     </style>
     """
+    style = style.replace("{customize_style}", customize_style)
     st.markdown(style, unsafe_allow_html=True)
 
 
-def initialize_page(icon: str, title: str, customize_style: bool = True):
+def initialize_page(icon: str, title: str, custom_style: str = ""):
     st.set_page_config(page_title=title, page_icon=icon)
     st.title(f"{icon} {title}")
 
@@ -95,5 +97,4 @@ def initialize_page(icon: str, title: str, customize_style: bool = True):
     if not st.session_state.visited_home:
         navigate_to_page("main")
 
-    if customize_style:
-        set_page_style()
+    set_page_style(custom_style)

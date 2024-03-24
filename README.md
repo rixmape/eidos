@@ -48,8 +48,7 @@ flowchart TD
 
    C -- Limit Reached --> L[Respond to Last Input]
    L --> M[Dialogue Summary]
-   M --> N[Suggest Further Reading]
-   N --> O[Conclude Dialogue]
+   M --> O[Conclude Dialogue]
 ```
 
 1. **Request Belief**: The dialogue begins with the AI asking the user to state a belief.
