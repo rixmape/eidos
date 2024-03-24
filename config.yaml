@@ -18,7 +18,7 @@ parameters:
 welcome_message: |
   #### How does it work?
 
-  By asking and answering questions, Eidos encourages you to articulate your beliefs, recognize their inconsistencies, and consider alternative perspectives. This process is known as the [Socratic Method](https://en.wikipedia.org/wiki/Socratic_method).
+  Eidos helps you share your beliefs, spot contradictions, and consider other views by using the Socratic Method. This method involves asking questions and having discussions.
 
 templates:
   greeting: |

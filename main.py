@@ -27,16 +27,23 @@ class HomePage:
         st.markdown("<br>", unsafe_allow_html=True)
         st.image("images/eidos_flow.png")
 
-        st.markdown(self.config['welcome_message'])
+        st.markdown(self.config["welcome_message"])
 
-    def display_next_page_link(self):
-        st.divider()
-        next_page = "pages/1_✨_Configuration.py"
-        st.page_link(next_page, label="✨ Start the experience")
+    def display_password_input(self):
+        st.markdown("#### Enter password to start the experience.")
+
+        password = st.text_input("Password", type="password")
+
+        if st.button("Submit"):
+            if password in st.secrets["auth"]["passwords"]:
+                st.session_state.password = password
+                page_utils.navigate_to_page("configuration")
+            else:
+                st.error("Invalid password. Try again.")
 
     def run(self):
         self.display_welcome_message()
-        self.display_next_page_link()
+        self.display_password_input()
 
 
 if __name__ == "__main__":

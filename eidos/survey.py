@@ -81,6 +81,7 @@ class SurveyForm:
             messages = self.state.chatbot.get_chat_messages()
             self.feedback["messages"] = messages
             self.feedback["timestamp"] = firestore.SERVER_TIMESTAMP
+            self.feedback["password"] = self.state.password
 
             self.database.add(self.feedback)
             self.is_sent = True
