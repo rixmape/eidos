@@ -7,7 +7,11 @@ from langchain_community.chat_message_histories.streamlit import (
 )
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    PromptTemplate,
+)
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
@@ -21,6 +25,7 @@ class ChatbotPipeline:
         self.initialize_llms()
         self.initialize_templates()
 
+        self.chain_rag_route = self.create_chain_rag_route()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_answer = self.create_chain_answer()
@@ -45,6 +50,11 @@ class ChatbotPipeline:
         self.answer_template = template.format(
             additional_instructions=" ".join(instructions)
         )
+
+    def create_chain_rag_route(self):
+        template = self.config.templates["rag_route"]
+        prompt_template = PromptTemplate.from_template(template)
+        return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_query_expansion(self):
         system_template = self.config.templates["query_expansion"]
@@ -74,9 +84,9 @@ class ChatbotPipeline:
     def create_chain_answer(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.system_template),
+                ("system", self.system_template.strip()),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", self.answer_template),
+                ("human", self.answer_template.strip()),
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()
@@ -94,7 +104,7 @@ class ChatbotPipeline:
     def format_documents(self, docs):
         return "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
 
-    def get_response(self, user_message, history):
+    def get_messages_from_history(self, history):
         messages = []
         for message in history.messages:
             content = json.loads(message.content)
@@ -102,22 +112,39 @@ class ChatbotPipeline:
                 messages.append(HumanMessage(content["message"]))
             else:
                 messages.append(AIMessage(content["message"]))
+        return messages
 
-        st.write("🔍 Exploring deeper implications...")
-        expansion = self.chain_query_expansion.invoke(
+    def get_response(self, user_message, history):
+        messages = self.get_messages_from_history(history)
+
+        st.write("🔗 Deciding whether to read philosophical texts...")
+        rag_route = self.chain_rag_route.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
             }
         )
 
-        st.write("📚 Reading relevant philosophical texts...")
-        context = self.chain_context.invoke(
-            {
-                "user_message": expansion,
-                "history": messages,
-            }
-        )
+        if "fetch" in rag_route:
+            st.write("🔍 Exploring deeper implications of your belief...")
+            expansion = self.chain_query_expansion.invoke(
+                {
+                    "user_message": user_message,
+                    "history": messages,
+                }
+            )
+
+            st.write("📚 Reading relevant philosophical texts...")
+            context = self.chain_context.invoke(
+                {
+                    "user_message": expansion,
+                    "history": messages,
+                }
+            )
+
+            context = self.config.templates["context"].format(context=context)
+        else:
+            context = ""
 
         st.write("📝 Writing my final thoughts...")
         response = self.chain_answer.invoke(
@@ -128,9 +155,13 @@ class ChatbotPipeline:
             }
         )
 
+        if context:
+            context = context.split("\n\n", 1)[1]  # Remove the template
+
         return {"message": response, "context": context}
 
     def get_summary(self, history):
+        messages = self.get_messages_from_history(history)
         return self.chain_summary.invoke(
             {
                 "history": messages,
@@ -166,12 +197,11 @@ class ChatbotAgent:
             if message.type == "ai" and content.get("context"):
                 with chat.expander("These texts helped me think better:"):
                     contexts = [
-                        context
+                        f"> {cleaned_context}"
                         for context in content["context"].split("\n")
-                        if context
+                        if (cleaned_context := context.strip("'"))
                     ]
-                    for context in contexts:
-                        st.markdown(f"> {context.strip("'")}")
+                    st.markdown("\n\n".join(contexts))
 
     def get_chat_messages(self):
         return [

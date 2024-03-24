@@ -29,9 +29,23 @@ templates:
 
     {additional_instructions}
 
+    {{context}}
+
+  rag_route: |
+    Given a message, determine whether reading philosophical texts is necessary to generate a response. A message requires philosophical texts if it mentions a concept, argument, or philosopher that you think requires further explanation.
+
+    If it requires texts, reply `fetch documents`. If not, reply `continue conversation`. Respond with these exact phrases. Do not include the backticks.
+
+    Here's the message you need to consider:
+
+    ```
+    {user_message}
+    ```
+
+  context: |
     Before replying, read and understand the texts below. Use them in the conversation if they relate to my last message. If not, use your own knowledge to lead the conversation.
 
-    {{context}}
+    {context}
 
   query_expansion: |
     Rewrite my last message to add context and depth relevant to our conversation. Do not answer the last message directly. Instead, expand it only. The revision should have more details that were not initially mentioned. Finally, conclude with 20 specific keywords or jargons related to the expanded content.
@@ -101,13 +115,7 @@ language_styles:
   - title: quick and casual
     caption: Discuss in everyday language.
     instruction: |
-      I can only understand basic English. My vocabulary is also limited. Therefore, use short sentences. Avoid explanations. Use everyday language like you would in a real SMS message.
-
-      Respond in 3 sentences using this format:
-
-      1. Start with a paraphrased version of my last message.
-      2. Provide your response.
-      3. End with a question to continue the conversation.
+      I can only understand basic English. My vocabulary is also limited. Therefore, use very simple sentences. Avoid explanations. Use everyday language like you would in a real SMS message. Limit your response to 3 short sentences.
 
   - title: in-depth and formal
     caption: Engage in academic-level discussions.
