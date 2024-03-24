@@ -1,30 +1,33 @@
 import os
 
-import chromadb
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.text import TextLoader
-from langchain_community.vectorstores.chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_pinecone import PineconeVectorStore
 
 
 class DocumentManager:
     def __init__(self, configuration):
         self.config = configuration
-        self.initialize_embedding_model()
 
-        if os.path.exists(self.config.parameters["database_path"]):
-            self.retriever = self.load_retriever()
-        else:
-            self.documents = self.read_documents()
-            self.retriever = self.initialize_retriever()
+        self.embedding_model = self.initialize_embedding_model()
+        self.vectorstore = self.initialize_vectorstore()
+        self.retriever = self.get_retriever()
 
     def initialize_embedding_model(self):
-        self.embedding_model = OpenAIEmbeddings(
+        return OpenAIEmbeddings(
             model=self.config.parameters["embedding_model"],
+            dimensions=self.config.parameters["embedding_dimensions"],
         )
 
-    def get_retriever(self, database):
-        return database.as_retriever(
+    def initialize_vectorstore(self):
+        return PineconeVectorStore(
+            index_name=os.getenv("PINECONE_INDEX_NAME"),
+            embedding=self.embedding_model,
+        )
+
+    def get_retriever(self):
+        return self.vectorstore.as_retriever(
             search_type=self.config.parameters["search_type"],
             search_kwargs={
                 "k": self.config.parameters["docs_to_use"],
@@ -32,21 +35,12 @@ class DocumentManager:
             },
         )
 
-    def load_retriever(self):
-        client = chromadb.PersistentClient(
-            path=self.config.parameters["database_path"]
-        )
-        vector_database = Chroma(
-            embedding_function=self.embedding_model,
-            client=client,
-        )
-        return self.get_retriever(vector_database)
-
-    def read_documents(self, path="documents", limit=None):
+    def get_documents(self, path="documents", limit=None):
         docs = []
+        valid_file_types = self.config.parameters["allowed_file_types"]
         for filename in os.listdir(path)[:limit]:
-            file_extension = filename.split(".")[-1]
-            if file_extension not in self.config["allowed_file_types"]:
+            file_type = filename.split(".")[-1]
+            if file_type not in valid_file_types:
                 continue
             doc_loader = TextLoader(
                 os.path.join(path, filename),
@@ -55,17 +49,9 @@ class DocumentManager:
             docs.extend(doc_loader.load())
         return docs
 
-    def initialize_retriever(self):
+    def split_documents(self, documents):
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500,
-            chunk_overlap=200,
+            chunk_size=self.config.parameters["embedding_chunk_size"],
+            chunk_overlap=self.config.parameters["embedding_chunk_overlap"],
         )
-        splits = text_splitter.split_documents(self.documents)
-
-        vector_database = Chroma.from_documents(
-            splits,
-            self.embedding_model,
-            persist_directory=self.config.parameters["database_path"],
-        )
-        vector_database.persist()
-        return self.get_retriever(vector_database)
+        return text_splitter.split_documents(documents)

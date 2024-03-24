@@ -1,13 +1,18 @@
 parameters:
   llm_main: gpt-4
   llm_helper: gpt-3.5-turbo
+
   embedding_model: text-embedding-3-small
-  database_path: chromadb
+  embedding_dimensions: 512
+  embedding_chunk_size: 1000
+  embedding_chunk_overlap: 200
+
   allowed_file_types: [txt, md]
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
-  min_prompt_count: 3
+
+  min_prompt_count: 1
   max_prompt_count: 6
 
 welcome_message: |

@@ -25,7 +25,7 @@ class HomePage:
         st.header(":red[Eidos] is your philosophy companion.")
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.image("images/eidos-flow.png")
+        st.image("images/eidos_flow.png")
 
         st.markdown(f"#### {self.config['welcome_message']}")
 
