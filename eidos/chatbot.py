@@ -227,7 +227,7 @@ class ChatbotAgent:
 
     def display_summary(self):
         summary = self.pipeline.get_summary(self.chat_history)
-        st.chat_message("ai").write(summary)
+        st.chat_message("ai").markdown(summary)
 
     def display_info_message(self):
         if len(self.chat_history.messages) == 1:

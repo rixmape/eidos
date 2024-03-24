@@ -82,6 +82,8 @@ templates:
     - <KEY_POINT_3>
     ```
 
+    Do not include the backticks.
+
 tips:
   first_message: |
     Share an opinion. We'll explore it together for the entire conversation.
