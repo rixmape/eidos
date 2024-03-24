@@ -25,27 +25,31 @@ The AI-driven Socratic method model in Eidos follows a structured process:
 title: AI-Driven Socratic Method Model
 ---
 flowchart TD
-  A[Request Belief] --> B[Receive User Belief]
-  B --> C{Check Dialogue Limit}
+   A[Request Belief] --> B[Receive User Belief]
+   B --> C{Check Dialogue Limit}
 
-  C -- Not Reached --> D[Reference Philosophical Texts]
-  D --> E{Identify Inconsistencies}
+   C -- Not Reached --> D{Contains Philo Concepts}
 
-  E -- Found --> F[Provide Contextual Info]
-  F --> G[Highlight Inconsistency]
-  G --> H[Request Clarification]
-  H --> I[User Clarifies/Examples]
-  I --> C
+   D -- Yes --> E
+   E[Reference Philosophical Texts]
 
-  E -- None --> J[Dive Deeper]
-  J --> K[Suggest Alternative]
-  K --> L[Request User to Defend Belief]
-  L --> I
+   D -- No --> F
 
-  C -- Limit Reached --> M[Respond to Last Input]
-  M --> N[Dialogue Summary]
-  N --> O[Suggest Further Reading]
-  O --> P[Conclude Dialogue]
+   E --> F{Identify Inconsistencies}
+
+   F -- Found --> G[Highlight Inconsistency]
+   G --> H[Request Clarification]
+   H --> I[User Clarifies/Examples]
+   I --> C
+
+   F -- None --> J[Dive Deeper]
+   J --> K[Request User to Defend Belief]
+   K --> I
+
+   C -- Limit Reached --> L[Respond to Last Input]
+   L --> M[Dialogue Summary]
+   M --> N[Suggest Further Reading]
+   N --> O[Conclude Dialogue]
 ```
 
 1. **Request Belief**: The dialogue begins with the AI asking the user to state a belief.
