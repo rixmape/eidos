@@ -5,9 +5,9 @@ import streamlit as st
 from langchain_community.chat_message_histories.streamlit import (
     StreamlitChatMessageHistory,
 )
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
@@ -24,7 +24,6 @@ class ChatbotPipeline:
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_answer = self.create_chain_answer()
-        self.chain_complete = self.create_chain_complete()
         self.chain_summary = self.create_chain_summary()
 
     def initialize_llms(self):
@@ -49,7 +48,7 @@ class ChatbotPipeline:
 
     def create_chain_query_expansion(self):
         system_template = self.config.templates["query_expansion"]
-        human_template = "{question}"
+        human_template = "{user_message}"
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", system_template),
@@ -58,6 +57,19 @@ class ChatbotPipeline:
             ]
         )
         return prompt_template | self.llm_helper | StrOutputParser()
+
+    def create_chain_context(self):
+        chain_context = (
+            {
+                "user_message": itemgetter("user_message"),
+                "history": itemgetter("history"),
+            }
+            | self.chain_query_expansion
+            | self.document_manager.retriever
+            | self.format_documents
+        )
+
+        return chain_context
 
     def create_chain_answer(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -68,26 +80,6 @@ class ChatbotPipeline:
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()
-
-    def create_chain_context(self):
-        chain_context = (
-            {
-                "question": itemgetter("question"),
-                "history": itemgetter("history"),
-            }
-            | self.chain_query_expansion
-            | self.document_manager.retriever
-            | self.format_documents
-        )
-
-        return chain_context
-
-    def create_chain_complete(self):
-        return RunnableParallel(
-            question=itemgetter("question"),
-            history=itemgetter("history"),
-            context=self.chain_context,
-        ).assign(answer=self.chain_answer)
 
     def create_chain_summary(self):
         system_template = self.config.templates["summary"]
@@ -102,18 +94,46 @@ class ChatbotPipeline:
     def format_documents(self, docs):
         return "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
 
-    def get_response(self, question, history):
-        return self.chain_complete.invoke(
+    def get_response(self, user_message, history):
+        messages = []
+        for message in history.messages:
+            content = json.loads(message.content)
+            if message.type == "human":
+                messages.append(HumanMessage(content["message"]))
+            else:
+                messages.append(AIMessage(content["message"]))
+
+        st.write("🔍 Exploring deeper implications...")
+        expansion = self.chain_query_expansion.invoke(
             {
-                "question": question,
-                "history": history.messages,
+                "user_message": user_message,
+                "history": messages,
             }
         )
+
+        st.write("📚 Reading relevant philosophical texts...")
+        context = self.chain_context.invoke(
+            {
+                "user_message": expansion,
+                "history": messages,
+            }
+        )
+
+        st.write("📝 Writing my final thoughts...")
+        response = self.chain_answer.invoke(
+            {
+                "user_message": user_message,
+                "history": messages,
+                "context": context,
+            }
+        )
+
+        return {"message": response, "context": context}
 
     def get_summary(self, history):
         return self.chain_summary.invoke(
             {
-                "history": history.messages,
+                "history": messages,
             }
         )
 
@@ -130,13 +150,28 @@ class ChatbotAgent:
 
     def add_greeting(self):
         greeting = self.config.templates["greeting"]
-        self.chat_history.add_ai_message(
-            greeting.format(topic=self.config.selected_topic["title"])
-        )
+        topic = self.config.selected_topic["title"]
+        greeting = greeting.format(topic=topic)
+
+        content = json.dumps({"message": greeting})
+        self.chat_history.add_ai_message(content)
 
     def display_messages(self):
         for message in self.chat_history.messages:
-            st.chat_message(message.type).markdown(message.content)
+            chat = st.chat_message(message.type)
+            content = json.loads(message.content)
+
+            chat.write(content["message"])
+
+            if message.type == "ai" and content.get("context"):
+                with chat.expander("These texts helped me think better:"):
+                    contexts = [
+                        context
+                        for context in content["context"].split("\n")
+                        if context
+                    ]
+                    for context in contexts:
+                        st.markdown(f"> {context.strip("'")}")
 
     def get_chat_messages(self):
         return [
@@ -147,12 +182,13 @@ class ChatbotAgent:
     def handle_input(self):
         if query := st.chat_input(key="chat_input"):
             st.chat_message("human").write(query)
-            response = self.pipeline.get_response(query, self.chat_history)
-            answer = response["answer"]
-            st.chat_message("ai").write(answer)
 
-            self.chat_history.add_user_message(query)
-            self.chat_history.add_ai_message(answer)
+            ai = st.chat_message("ai")
+            with ai.status("🧠 Examining your statement..."):
+                response = self.pipeline.get_response(query, self.chat_history)
+
+            self.chat_history.add_user_message(json.dumps({"message": query}))
+            self.chat_history.add_ai_message(json.dumps(response))
             self.prompt_count += 1
             st.rerun()
 

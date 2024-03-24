@@ -52,11 +52,11 @@ templates:
     Here's the reply you need to consider:
 
     ```
-    {{question}}
+    {{user_message}}
     ```
 
   summary: |
-    Summarize the entire conversation. Highlight the key points, arguments, and conclusions. Use straightforward anc concise language. Shorten your sentences.
+    Summarize our entire conversation so far. Highlight the key points. Use direct anc concise language. Shorten your sentences.
 
     Format your response as follows:
 
