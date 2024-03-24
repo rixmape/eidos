@@ -12,11 +12,13 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
-  min_prompt_count: 1
-  max_prompt_count: 6
+  min_prompt_count: 2
+  max_prompt_count: 5
 
 welcome_message: |
-  Using the Soractic Method, Eidos encourages you to articulate your beliefs, recognize their inconsistencies, and consider alternative perspectives.
+  #### How does it work?
+
+  By asking and answering questions, Eidos encourages you to articulate your beliefs, recognize their inconsistencies, and consider alternative perspectives. This process is known as the [Socratic Method](https://en.wikipedia.org/wiki/Socratic_method).
 
 templates:
   greeting: |
@@ -51,6 +53,19 @@ templates:
 
     ```
     {{question}}
+    ```
+
+  summary: |
+    Summarize the entire conversation. Highlight the key points, arguments, and conclusions. Use straightforward anc concise language. Shorten your sentences.
+
+    Format your response as follows:
+
+    ```
+    In our conversation, we learned these ideas:
+
+    - <KEY_POINT_1>
+    - <KEY_POINT_2>
+    - <KEY_POINT_3>
     ```
 
 tips:

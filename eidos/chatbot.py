@@ -25,6 +25,7 @@ class ChatbotPipeline:
         self.chain_context = self.create_chain_context()
         self.chain_answer = self.create_chain_answer()
         self.chain_complete = self.create_chain_complete()
+        self.chain_summary = self.create_chain_summary()
 
     def initialize_llms(self):
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
@@ -88,6 +89,16 @@ class ChatbotPipeline:
             context=self.chain_context,
         ).assign(answer=self.chain_answer)
 
+    def create_chain_summary(self):
+        system_template = self.config.templates["summary"]
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="history"),
+                ("human", system_template),
+            ]
+        )
+        return prompt_template | self.llm_helper | StrOutputParser()
+
     def format_documents(self, docs):
         return "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
 
@@ -95,6 +106,13 @@ class ChatbotPipeline:
         return self.chain_complete.invoke(
             {
                 "question": question,
+                "history": history.messages,
+            }
+        )
+
+    def get_summary(self, history):
+        return self.chain_summary.invoke(
+            {
                 "history": history.messages,
             }
         )
@@ -139,14 +157,11 @@ class ChatbotAgent:
             st.rerun()
 
     def check_prompt_limit(self):
-        if self.prompt_count >= self.config.parameters["max_prompt_count"]:
-            message = (
-                "You have reached the limit."
-                " Please answer the survey form now."
-            )
-            st.warning(message, icon="⚠️")
-            return True
-        return False
+        return self.prompt_count >= self.config.parameters["max_prompt_count"]
+
+    def display_summary(self):
+        summary = self.pipeline.get_summary(self.chat_history)
+        st.chat_message("ai").write(summary)
 
     def display_info_message(self):
         if len(self.chat_history.messages) == 1:
@@ -156,6 +171,11 @@ class ChatbotAgent:
         self.display_messages()
 
         if self.check_prompt_limit():
+            self.display_summary()
+
+            message = "You reached the limit. Answer the survey form now."
+            st.warning(message, icon="⚠️")
+
             return
 
         self.handle_input()

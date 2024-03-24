@@ -22,17 +22,17 @@ class HomePage:
             self.config = yaml.safe_load(f)
 
     def display_welcome_message(self):
-        st.header(":red[Eidos] is your philosophy companion.")
+        st.header(":red[Eidos] is a philosophy companion.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.image("images/eidos_flow.png")
 
-        st.markdown(f"#### {self.config['welcome_message']}")
+        st.markdown(self.config['welcome_message'])
 
     def display_next_page_link(self):
         st.divider()
         next_page = "pages/1_✨_Configuration.py"
-        st.page_link(next_page, label="✨ Configure your experience")
+        st.page_link(next_page, label="✨ Start the experience")
 
     def run(self):
         self.display_welcome_message()
