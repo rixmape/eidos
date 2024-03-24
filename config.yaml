@@ -7,15 +7,15 @@ parameters:
   search_type: mmr
   docs_to_use: 2
   docs_to_process: 50
-  min_prompt_count: 0
+  min_prompt_count: 3
   max_prompt_count: 6
 
 welcome_message: |
-  Using the Soractic Method, Eidos encourages you to articulate their beliefs, recognize inconsistencies, and consider alternative perspectives.
+  Using the Soractic Method, Eidos encourages you to articulate your beliefs, recognize their inconsistencies, and consider alternative perspectives.
 
 templates:
   greeting: |
-    What's something you believe to be true?
+    What's something you believe to be true about {topic}?
 
   system: |
     Assume the role of a philosopher. We are exchanging SMS messages using the Socratic method. Help me understand my beliefs, address their inconsistencies, and consider other perspectives. If I stray from philosophy, gently guide me back to the original topic.
@@ -54,25 +54,25 @@ tips:
 
 topics:
   - branch: ethics
-    title: Moral Problems
+    title: moral problems
     caption: Understand impact of ethical behaviors.
     instruction: |
       Focus only on ethics. Help me enhance my understanding of moral principles and their practical application.
 
   - branch: aesthetics
-    title: Art and Beauty
+    title: art and beauty
     caption: Explore the profound impact of art and beauty.
     instruction: |
       Focus only on aesthetics. Help me understand the concepts of art, beauty, and taste.
 
   - branch: logic
-    title: Reasoning and Argumentation
+    title: reasoning and argumentation
     caption: Learn to reason with logical precision.
     instruction: |
       Focus only on logic. Help me improve my critical thinking skills and the ability to construct clear and coherent arguments.
 
   - branch: epistemology
-    title: Knowledge and Belief
+    title: knowledge and belief
     caption: Investigate how we acquire knowledge.
     instruction: |
       Focus only on epistemology. Help me explore the basis of knowledge and its implications for understanding the world.

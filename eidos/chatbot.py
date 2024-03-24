@@ -112,7 +112,9 @@ class ChatbotAgent:
 
     def add_greeting(self):
         greeting = self.config.templates["greeting"]
-        self.chat_history.add_ai_message(greeting)
+        self.chat_history.add_ai_message(
+            greeting.format(topic=self.config.selected_topic["title"])
+        )
 
     def display_messages(self):
         for message in self.chat_history.messages:
