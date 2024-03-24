@@ -95,18 +95,18 @@ topics:
 
   - branch: aesthetics
     title: art and beauty
-    caption: Explore the profound impact of art and beauty.
+    caption: Explore the profound impact of aesthetics.
     instruction: |
       Focus only on aesthetics. Help me understand the concepts of art, beauty, and taste.
 
   - branch: logic
-    title: reasoning and argumentation
-    caption: Learn to reason with logical precision.
+    title: reasoning
+    caption: Learn to argue with logical precision.
     instruction: |
       Focus only on logic. Help me improve my critical thinking skills and the ability to construct clear and coherent arguments.
 
   - branch: epistemology
-    title: knowledge and belief
+    title: knowledge
     caption: Investigate how we acquire knowledge.
     instruction: |
       Focus only on epistemology. Help me explore the basis of knowledge and its implications for understanding the world.
