@@ -11,7 +11,7 @@ parameters:
   max_prompt_count: 6
 
 welcome_message: |
-  This innovative web app uses artificial intelligence to facilitate discussions on philosophy.
+  Using the Soractic Method, Eidos encourages you to articulate their beliefs, recognize inconsistencies, and consider alternative perspectives.
 
 templates:
   greeting: |
