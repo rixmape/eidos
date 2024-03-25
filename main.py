@@ -22,18 +22,25 @@ class HomePage:
             self.config = yaml.safe_load(f)
 
     def display_welcome_message(self):
-        st.header(":red[Eidos] is a philosophy companion.")
+        st.header(":red[Eidos] is your philosophy companion.")
         st.image("images/eidos_cycle.png")
 
     def display_credentials_input(self):
-        st.markdown("#### What is your name?")
+        st.markdown("#### Full name")
         name = st.text_input(
             "Full Name",
-            placeholder="First Middle Last (e.g., Juan R. Dela Cruz)",
+            placeholder="e.g., Juan R. Dela Cruz",
             label_visibility="collapsed",
         )
 
-        st.markdown("#### Enter password given by your teacher.")
+        st.markdown("#### Class section")
+        class_section = st.text_input(
+            "Class section",
+            placeholder="e.g., BSHM 2B2, 12-HUMSS2",
+            label_visibility="collapsed",
+        )
+
+        st.markdown("#### Password given by your teacher")
         password = st.text_input(
             "Password",
             type="password",
@@ -49,6 +56,7 @@ class HomePage:
         if st.button("✨ Start Using Eidos!"):
             if name and password:
                 st.session_state.name = name
+                st.session_state.class_section = class_section
                 if password in st.secrets["auth"]["passwords"]:
                     st.session_state.password = password
                     page_utils.navigate_to_page("configuration")

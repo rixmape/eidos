@@ -77,11 +77,13 @@ class SurveyForm:
     def send_feedback(self):
         st.divider()
         if st.button("Send Feedback"):
+            self.feedback["timestamp"] = firestore.SERVER_TIMESTAMP
+            self.feedback["name"] = self.state.name
+            self.feedback["class_section"] = self.state.class_section
+            self.feedback["password"] = self.state.password
+
             messages = self.state.chatbot.get_chat_messages()
             self.feedback["messages"] = messages
-            self.feedback["timestamp"] = firestore.SERVER_TIMESTAMP
-            self.feedback["password"] = self.state.password
-            self.feedback["name"] = self.state.name
 
             self.database.add(self.feedback)
             self.is_sent = True
