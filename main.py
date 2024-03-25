@@ -23,28 +23,24 @@ class HomePage:
 
     def display_welcome_message(self):
         st.header(":red[Eidos] is a philosophy companion.")
+        st.image("images/eidos_cycle.png")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.image("images/eidos_flow.png")
-
-        st.markdown(self.config["welcome_message"])
-
-    def display_login_input(self):
+    def display_credentials_input(self):
         st.markdown("#### What is your name?")
         name = st.text_input(
             "Full Name",
-            placeholder="Juan R. Dela Cruz",
+            placeholder="First Middle Last (e.g., Juan R. Dela Cruz)",
             label_visibility="collapsed",
         )
 
-        st.markdown("#### Enter the password given to you.")
+        st.markdown("#### Enter password given by your teacher.")
         password = st.text_input(
             "Password",
             type="password",
             label_visibility="collapsed",
         )
 
-        if st.button("Submit"):
+        if st.button("✨ Start Using Eidos!"):
             if name and password:
                 st.session_state.name = name
                 if password in st.secrets["auth"]["passwords"]:
@@ -57,8 +53,7 @@ class HomePage:
 
     def run(self):
         self.display_welcome_message()
-
-        self.display_login_input()
+        self.display_credentials_input()
 
 
 if __name__ == "__main__":
