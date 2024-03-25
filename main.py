@@ -40,6 +40,12 @@ class HomePage:
             label_visibility="collapsed",
         )
 
+        st.markdown(
+            "By using Eidos, you agree to the [Privacy Policy](https://www."
+            "privacypolicies.com/live/bc71f451-b0f6-47ed-b46c-04f0bbdb3370)."
+        )
+
+        st.divider()
         if st.button("✨ Start Using Eidos!"):
             if name and password:
                 st.session_state.name = name
