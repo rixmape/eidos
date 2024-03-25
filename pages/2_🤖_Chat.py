@@ -13,7 +13,7 @@ class ChatPage:
         self.state.setdefault("chatbot", None)
 
     def initialize_page(self):
-        page_utils.initialize_page("🧐", "Hello, I'm Eidos!")
+        page_utils.initialize_page("🤖", "Hello, I'm Eidos!")
 
     def run_chatbot(self):
         if not self.state.chatbot:

@@ -89,27 +89,23 @@ tips:
     Share an opinion. We'll explore it together for the entire conversation.
 
 topics:
-  - branch: ethics
-    title: moral problems
+  - title: moral problems
     caption: Understand impact of ethical behaviors.
     instruction: |
       Focus only on ethics. Help me enhance my understanding of moral principles and their practical application.
 
-  - branch: aesthetics
-    title: art and beauty
-    caption: Explore the profound impact of aesthetics.
+  - title: art and beauty
+    caption: Explore what makes something beautiful.
     instruction: |
       Focus only on aesthetics. Help me understand the concepts of art, beauty, and taste.
 
-  - branch: logic
-    title: reasoning
+  - title: reasoning
     caption: Learn to argue with logical precision.
     instruction: |
       Focus only on logic. Help me improve my critical thinking skills and the ability to construct clear and coherent arguments.
 
-  - branch: epistemology
-    title: knowledge
-    caption: Investigate how we acquire knowledge.
+  - title: knowledge
+    caption: Investigate how we know what we know.
     instruction: |
       Focus only on epistemology. Help me explore the basis of knowledge and its implications for understanding the world.
 
