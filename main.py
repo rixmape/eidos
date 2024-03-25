@@ -29,21 +29,36 @@ class HomePage:
 
         st.markdown(self.config["welcome_message"])
 
-    def display_password_input(self):
-        st.markdown("#### Enter password to start the experience.")
+    def display_login_input(self):
+        st.markdown("#### What is your name?")
+        name = st.text_input(
+            "Full Name",
+            placeholder="Juan R. Dela Cruz",
+            label_visibility="collapsed",
+        )
 
-        password = st.text_input("Password", type="password")
+        st.markdown("#### Enter the password given to you.")
+        password = st.text_input(
+            "Password",
+            type="password",
+            label_visibility="collapsed",
+        )
 
         if st.button("Submit"):
-            if password in st.secrets["auth"]["passwords"]:
-                st.session_state.password = password
-                page_utils.navigate_to_page("configuration")
+            if name and password:
+                st.session_state.name = name
+                if password in st.secrets["auth"]["passwords"]:
+                    st.session_state.password = password
+                    page_utils.navigate_to_page("configuration")
+                else:
+                    st.error("Invalid password. Try again.")
             else:
-                st.error("Invalid password. Try again.")
+                st.error("Please fill in all fields.")
 
     def run(self):
         self.display_welcome_message()
-        self.display_password_input()
+
+        self.display_login_input()
 
 
 if __name__ == "__main__":

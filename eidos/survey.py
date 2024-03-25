@@ -81,6 +81,7 @@ class SurveyForm:
             self.feedback["messages"] = messages
             self.feedback["timestamp"] = firestore.SERVER_TIMESTAMP
             self.feedback["password"] = self.state.password
+            self.feedback["name"] = self.state.name
 
             self.database.add(self.feedback)
             self.is_sent = True
