@@ -11,7 +11,6 @@ class SurveyForm:
         self.options = [
             "Strongly Disagree",
             "Disagree",
-            "Neutral",
             "Agree",
             "Strongly Agree",
         ]
