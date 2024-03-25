@@ -3,3 +3,4 @@ __pycache__/
 chromadb/
 documents/
 secrets.toml
+feedback.json
