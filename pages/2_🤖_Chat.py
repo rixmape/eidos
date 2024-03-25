@@ -22,8 +22,8 @@ class ChatPage:
 
     def display_next_page_link(self):
         if (
-            self.state.chatbot.prompt_count
-            >= self.state.config.parameters["min_prompt_count"]
+            self.state.chatbot.chat_count
+            >= self.state.config.parameters["min_k_chat"]
         ):
             st.divider()
             next_page = "pages/3_📝_Survey.py"

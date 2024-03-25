@@ -12,8 +12,8 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
-  min_prompt_count: 1
-  max_prompt_count: 5
+  min_k_chat: 2
+  max_k_chat: 5
 
 welcome_message: |
   #### How does it work?
@@ -84,9 +84,15 @@ templates:
 
     Do not include the backticks.
 
-tips:
-  first_message: |
-    Share an opinion. We'll explore it together for the entire conversation.
+info_messages:
+  first_chat: |
+    Share an idea about the topic. Let's explore it together.
+
+  more_chat: |
+    Please make {remaining} more chat to answer the survey.
+
+  min_k_chat: |
+    You can either continue the chat or answer the survey already.
 
 topics:
   - title: moral problems

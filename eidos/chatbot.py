@@ -174,7 +174,7 @@ class ChatbotAgent:
         self.config = configuration
         self.pipeline = ChatbotPipeline(configuration)
         self.chat_history = StreamlitChatMessageHistory()
-        self.prompt_count = 0
+        self.chat_count = 0
 
         if not self.chat_history.messages:
             self.add_greeting()
@@ -219,19 +219,32 @@ class ChatbotAgent:
 
             self.chat_history.add_user_message(json.dumps({"message": query}))
             self.chat_history.add_ai_message(json.dumps(response))
-            self.prompt_count += 1
+            self.chat_count += 1
             st.rerun()
 
     def check_prompt_limit(self):
-        return self.prompt_count >= self.config.parameters["max_prompt_count"]
+        return self.chat_count >= self.config.parameters["max_k_chat"]
 
     def display_summary(self):
         summary = self.pipeline.get_summary(self.chat_history)
         st.chat_message("ai").markdown(summary)
 
     def display_info_message(self):
-        if len(self.chat_history.messages) == 1:
-            st.info(self.config.tips["first_message"], icon="ℹ️")
+        min_chat = self.config.parameters["min_k_chat"]
+        max_chat = self.config.parameters["max_k_chat"]
+        messages = self.config.info_messages
+
+        if self.chat_count == 0:
+            body = messages["first_chat"]
+
+        if self.chat_count != 0 and self.chat_count < min_chat:
+            k_chat_left = min_chat - self.chat_count
+            body = messages["more_chat"].format(remaining=k_chat_left)
+
+        if self.chat_count >= min_chat and self.chat_count < max_chat:
+            body = messages["min_k_chat"]
+
+        st.info(f"**:blue[Info:]** {body}", icon="ℹ️")
 
     def run(self):
         self.display_messages()
