@@ -12,7 +12,7 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
-  min_k_chat: 2
+  min_k_chat: 3
   max_k_chat: 5
 
 welcome_message: |
