@@ -1,4 +1,12 @@
-# Eidos: Examining Beliefs Through Dialogue
+# Enhancing Philosophical Inquiry with AI-Driven Socratic Dialogues
+
+## Abstract
+
+Eidos is a web application developed to engage students in philosophical inquiry through AI-driven Socratic dialogues. This study evaluates Eidos' effectiveness in encouraging students to examine their beliefs and explore alternative perspectives. The development of Eidos centered around using a large language model to facilitate conversations that simulate the Socratic questioning technique. The application integrates a database of philosophical texts to avoid sharing unsupported claims and instead provide accurate and reliable information.
+
+The evaluation involved high school and college students who provided feedback through a mixed-methods approach, including Likert-scale, multiple-choice questions, and open-ended responses. This assessment focused on Eidos' impact on students' critical thinking skills and openness to different viewpoints. Results showed a strong positive reception among students, who appreciated the dialogues for enhancing their ability to engage with their beliefs carefully. Participants also emphasized how they became more reflective on the foundations of their beliefs after using Eidos. However, feedback also highlighted the need to improve the Eidos' ability to handle complex beliefs and sensitive topics.
+
+The findings suggest that Eidos has significant potential to enhance philosophical education by adapting to diverse student backgrounds, making philosophical inquiry accessible and engaging for all. The study also underscores the importance of refining AI capabilities to complement the efforts made by educators.
 
 ## Introduction
 
@@ -10,7 +18,7 @@ Employing the method has proven to significantly enhance critical thinking skill
 
 However, applying the Socratic method in different educational settings presents challenges. For instance, in language teaching and science education, obstacles such as teachers' lack of content knowledge and questioning skills have been identified (Dalim et al., 1040). These challenges underline the importance of professional training for teachers to effectively use the Socratic method. Without skilled teachers, students may feel intimidated that they resist learning (Crogman 70). Additionally, extra support must be provided as the method's success partly depends on the students' background knowledge and vocabulary (Copelin 4-5; Chan & Zahar 8). When thoughtfully applied, the Socratic method has the power to transform learning experiences.
 
-### Enhancing the Socratic Method with AI
+### Overcoming Limitations through Artificial Intelligence
 
 Eidos innovates artificial intelligence (AI) to enhance the Socratic method's application in education. This tool is crafted to complement teachers by adapting to diverse student backgrounds, ultimately aiming to make philosophical inquiry accessible and engaging for all. Eidos addresses three challenges: it uses natural language processing (NLP) to generate relevant responses, overcoming limitations in teachers' questioning skills; it offers customization options to cater to individual learning preferences, ensuring a broader inclusivity; and it uses a structured approach to identify inconsistencies in students' beliefs, promoting critical thinking and self-reflection. Through these measures, Eidos provides a platform where students can prepare to tackle the modern world through philosophical inquiry.
 
@@ -24,92 +32,44 @@ The subsequent sections of this paper will detail the design, development, and e
 
 ## Methods
 
-### Design
+### Modelling the Socratic Method
 
-The Socratic Method Model detailed in Figure 1 is a sophisticated framework designed to engage users in philosophical dialogue. The model initiates a conversation by requesting the user to articulate a belief, which is then received and processed to ensure the dialogue remains within a predefined limit of exchanges. A limit is set to reduce the number of API calls since the LLM is computationally expensive. This structured approach progresses through a series of steps where the AI, depending on whether the user's belief contains philosophical concepts, either references philosophical texts or moves directly to identify inconsistencies. The philosophical texts include public article from the Stanford Encyclopedia of Philosophy. The model is dynamic, allowing for deeper exploration into the user's belief system by encouraging defense of their beliefs or requesting clarifications to highlight and rectify inconsistencies.
+Formal models for integrating the Socratic Method into computational systems have been explored, highlighting its use in developing dialogue systems. One study Caminada aims to formalize argumentations similar to the Socratic method, where the objective is to derive contradictions from an opponent's premises (Camida 111). Another approach uses state diagrams to formalize the method into three steps: eliciting examples, identifying attributes, and abstracting these into general principles (Huse & Le 184-188). While Eidos also uses state diagrams to formalize the Socratic method, it diverges by focusing on detecting inconsistencies within a belief statement.
 
-At the heart of this model lies the Retrieval-Augmented Generation (RAG) architecture, which equips the LLM with the capability to access a vast repository of philosophical texts. This enables the LLM to conduct a more informed analysis of the user's beliefs by referencing established philosophical knowledge. The RAG architecture not only enhances the AI’s ability to generate coherent and contextually relevant responses but also significantly improves the identification of inconsistencies within the user’s beliefs. By leveraging this architecture, the model ensures that the dialogue is both informative and reflective.
+```mermaid
+---
+title: Figure 1. AI-Driven Socratic Method Model
+---
+flowchart TD
+    A[Select Topic and Language Style] --> B[Eidos Requests Belief]
+    B --> C[Receive User Belief]
+    C --> D{Check Dialogue Limit}
 
-To effectively identify inconsistencies in the user's belief system, the LLM employs a meticulous approach that examines internal contradictions, inconsistencies with other beliefs, and inconsistencies with established knowledge. It checks for direct and implicit contradictions within the belief itself and against the user's broader belief system. Additionally, it evaluates the belief against established scientific, historical, and evidence-based information to identify any misalignments. This thorough examination is essential for fostering a deeper understanding and refining the user's beliefs, guiding them towards a more coherent and logically sound belief system. Through this process, Eidos demonstrates a profound capacity for facilitating meaningful philosophical inquiry, offering a novel and interactive way to engage with complex concepts and self-reflection.
+    D -- Not Reached --> E{Contains Philo Concepts}
 
-### Development
+    E -- Yes --> F
+    F[Reference Philosophical Texts]
 
-#### Software Architecture
+    E -- No --> G
 
-The Eidos project's software architecture is structured around a central core, the Main Application Logic (`main.py`), which orchestrates the interplay among various components critical to its operation. This central orchestrator controls the flow of the application, ensuring seamless integration and coordination between different modules. Key modules include Configuration (`1_✨_Configuration.py` and `configuration.py`), responsible for setting up and initializing the application's environment and parameters; the Chat Interface (`2_🤖_Chat.py` and `chatbot.py`), which manages the AI-driven dialogues with users; the Survey Mechanism (`3_📝_Survey.py` and `survey.py`), tasked with collecting and analyzing user feedback; Utility Services (`page_utils.py`), offering common functionalities across the application; and Document Management (`document_manager.py`), handling the retrieval of philosophical texts from external sources. These components work in concert to facilitate a dynamic and interactive user experience, grounded in the Socratic method of inquiry.
+    F --> G{Identify Inconsistencies}
 
-Underpinning the chat interface are AI Language Models that process user inputs and generate dialogues, simulating the Socratic method to encourage users to examine and articulate their beliefs. External Databases, such as the Stanford Encyclopedia of Philosophy, are integrated via the Document Management module, enriching dialogues with authoritative references and supporting the application's educational objectives. Data Analysis Tools analyze feedback collected through the Survey Mechanism, informing continuous improvement and personalization of the user experience. Overall, the software architecture of Eidos is designed for flexibility, scalability, and robustness, ensuring that the application can adapt to the evolving needs of its users while maintaining a focus on fostering philosophical exploration and personal growth.
+    G -- Found --> H[Highlight Inconsistency]
+    H --> I[Request Clarification]
+    I --> J[User Clarifies/Examples]
+    J --> D
 
-#### LLM Agents
+    G -- None --> K[Dive Deeper]
+    K --> L[Request User to Defend Belief]
+    L --> J
 
-The Large Language Model (LLM), specifically OpenAI's GPT-4, is a pivotal component in the Eidos software architecture, facilitating a range of functionalities that enable the application to simulate sophisticated philosophical dialogues. As the backbone of Eidos's AI-driven interaction, the LLM undertakes multiple roles through prompt engineering, a method used to guide the AI's responses to align with the desired outcomes. First, as a Question-Answering Agent, it processes user messages within the context of the entire chat history, orchestrating the sequence of interactions and deciding when to engage other agents. This includes calling upon the Dialogue Router Agent to navigate the conversation's direction based on the user's current inputs, ensuring the dialogue remains relevant and insightful.
+    D -- Limit Reached --> M[Respond to Last Input]
+    M --> N[Dialogue Summary]
+    N --> O[Conclude Dialogue]
+```
 
-Within its diversified roles, the LLM further acts as a Dialogue Router Agent, determining the necessity of incorporating philosophical texts into the conversation, thereby enriching the dialogue with deeper insights into mentioned concepts, arguments, or philosophers. As a Query Translation Agent, it expands on user messages to create pseudo-documents that facilitate the retrieval of pertinent philosophical texts from the database, using vector similarity to find the most relevant texts. Finally, in its role as a Conversation Summary Agent, the LLM synthesizes the conversation into a comprehensive summary, highlighting key points discussed, which is particularly useful when a dialogue reaches its pre-defined message limit. Through these roles, the LLM exemplifies the application's capability to provide an interactive, educational experience, leveraging the vast knowledge embedded within GPT-4 to foster philosophical inquiry and reflection.
+The formal model for implementing Eidos outlines a structured process that uses AI to simulate Socratic dialogues. Before initiating the dialogue, the user selects a topic and language style to personalize the conversation. Eidos then requests the user to state a belief, which serves as the starting point for the dialogue. The system processes the user's input to determine if it contains philosophical concepts. If it does, Eidos references a database of SEP articles to ground the discussion in established knowledge. This retrieval-augmented generation (RAG) technique ensures that the dialogue is informed by credible sources.
 
-#### Knowledge Database
+After determining whether to fetch external references, Eidos identifies inconsistencies within the user's belief statement. If inconsistencies are found, the system highlights them to the user and requests clarification or examples to resolve the contradictions. An inconsistency is determined using three criteria: internal contradiction, logical fallacy, and factual inaccuracy. The first two are detected by the AI model's reasoning capabilities, while the third is cross-referenced with the SEP database. This iterative process of questioning and clarifying continues until a dialogue limit is reached, at which point Eidos provides a summary of the dialogue and concludes the session. A limit is set considering the expense of computational resources and the user's attention span.
 
-The Eidos project leverages a knowledge database comprised of articles from the Stanford Encyclopedia of Philosophy (SEP), selectively incorporating those that are publicly available through a process of web scraping. This methodical aggregation of philosophical content forms the foundation upon which Eidos enriches its dialogues, allowing the application to draw upon a wide array of philosophical theories, arguments, and biographies of notable philosophers to support the exploration of complex topics within conversations. Users engaging with the platform can directly see which texts from the SEP are referenced during their interactions, ensuring transparency and educational value. Moreover, all references made to these texts are properly cited, adhering to academic standards and fostering a culture of respect for intellectual property and scholarly work.
-
-Hosting this meticulously curated database is Pinecone, a vector database provider that specializes in handling complex, semantic search queries through vector embeddings. By leveraging Pinecone's capabilities, Eidos can efficiently cross-reference user inputs with its database of philosophical texts, identifying the most relevant articles based on vector similarity. This approach enables a dynamic and contextually relevant injection of philosophical insights into dialogues, significantly enhancing the depth and educational quality of the interactions. Pinecone's vector database technology not only facilitates rapid and accurate retrieval of information but also scales with the application, supporting the expanding repository of knowledge as more articles are added. This integration exemplifies how cutting-edge database technologies can be employed to bridge AI-driven dialogue systems with extensive, domain-specific knowledge bases, enriching user experiences with meaningful and informed content.
-
-#### User Interface
-
-The user interface of Eidos is crafted using Streamlit, a powerful Python package renowned for its ability to rapidly transform Python scripts into interactive web applications. This choice is motivated by the need for swift prototyping, enabling the developers to quickly iterate on the application's design and functionality to meet the project's evolving requirements. Streamlit's straightforward integration and ease of use allow for the seamless incorporation of complex AI functionalities into a user-friendly interface, facilitating engaging and deep philosophical dialogues.
-
-In designing the user experience (UX) for Eidos, several key considerations were made to ensure that users find the application both enlightening and easy to navigate. First, the clarity of the dialogue interface was prioritized, ensuring that users can easily follow the conversation flow, input their thoughts, and understand the AI-generated responses. This includes the thoughtful organization of chat history and the clear presentation of philosophical references and summaries. Second, the responsiveness of the application was optimized, guaranteeing users receive timely feedback to their inquiries and interactions, which is critical in maintaining engagement in a dialogue-intensive environment. Lastly, accessibility was emphasized, with efforts made to ensure that the application is inclusive and usable by a diverse audience, including those with varying levels of familiarity with philosophical discourse and digital literacy. These UX considerations are pivotal in making the exploration of complex philosophical ideas through Eidos not only possible but also a delightful and enriching experience.
-
-#### Data Management
-
-For the Eidos project, data management is handled using Firebase Firestore, a flexible, scalable database for mobile, web, and server development from Firebase and Google Cloud Platform. Firestore is chosen for its real-time data synchronization capabilities, allowing for instant updates across user sessions, which is essential for a dynamic application like Eidos that involves continuous user interaction. The database stores critical information such as users' chat histories and their responses to survey forms, enabling a personalized and continuous dialogue experience.
-
-Storing chat histories allows Eidos to maintain context in ongoing conversations, facilitating a more coherent and engaging interaction that builds upon previous exchanges. This is crucial for the application's ability to conduct meaningful dialogues that evolve over time. Survey responses, on the other hand, provide valuable feedback on the user experience, offering insights into how users perceive the application and how it can be improved. Additionally, this data collection supports the development team in understanding user engagement and identifying areas for enhancement, driving the iterative improvement of Eidos. The use of Firestore for data management underscores the project's commitment to leveraging advanced technologies to ensure a seamless, efficient, and user-centric platform.
-
-### Evaluation
-
-The evaluation of Eidos centers on its efficacy in fostering philosophical inquiry and enhancing users' critical engagement with their beliefs. To systematically assess the application, the study deployed a mixed-methods approach, leveraging both quantitative and qualitative data gleaned from the integrated survey module post-interaction. Quantitative measures were derived from Likert-scale questions focusing on the application's impact on critical thinking, openness to alternative perspectives, and the identification of inconsistencies in users' beliefs. Concurrently, qualitative insights were harvested from open-ended responses and multiple-choice questions, providing depth and context to the numerical data. This comprehensive evaluation framework allowed for a nuanced understanding of Eidos's performance across diverse user experiences.
-
-Initial findings from the quantitative analysis indicated a positive trend, with a majority of users agreeing that Eidos effectively aided in examining their beliefs more critically and in considering alternative viewpoints. The qualitative responses complemented these findings, with users frequently highlighting the value of engaging in Socratic dialogues and the referencing of philosophical texts as significant contributors to their reflective process. Specifically, anecdotes of moments where Eidos identified inconsistencies in their beliefs underscored the application's capability to provoke deeper introspection. However, feedback on areas for improvement pointed to a desire for enhanced AI understanding of complex beliefs and more sensitive handling of topics, suggesting avenues for further development.
-
-The evaluation also illuminated the pivotal role of the survey form in iterating upon Eidos's design and functionality. User suggestions for more diverse and personalized dialogue experiences have prompted ongoing refinements to the AI model and content database. By aligning with user feedback, the project underscores a commitment to continuous improvement, ensuring that Eidos remains a dynamic and responsive platform for philosophical exploration. Future evaluations will incorporate a broader dataset and explore longitudinal impacts on users' philosophical engagement, aiming to substantiate the initial positive trends and address the constructive critiques highlighted by the user community.
-
-## Results and Discussion
-
-## Conclusion
-
-## References
-
-- Abdelghani, R., Wang, Y.-H., Yuan, X., Wang, T., Sauz´ eon, H., & Oudeyer, P.-Y. (2022). GPT-3-driven pedagogical agents for training children’s curious question-asking skills. arXiv. preprint arXiv:2211.14228.
-- Abou-Hanna, J. J., Owens, S. T., Kinnucan, J. A., Mian, S. I., & Kolars, J. C. (2021). Resuscitating the Socratic method: student and faculty perspectives on posing probing questions during clinical teaching. Academic Medicine, 96(1), 113-117.
-- Abrams, J. R. (2015). Reframing the Socratic method. Journal of Legal Education, 64(4), 562-585.
-- Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., ... & McGrew, B. (2023). Gpt-4 technical report. arXiv preprint arXiv:2303.08774.
-- Acim, R. (2018). The Socratic method of instruction: An experience with a reading comprehension course. Journal of Educational Research and Practice, 8(1), 4.
-- Al-Darwish, S. (2012). The Role of Teacher Questions and the Socratic Method in EFL Classrooms in Kuwait. World Journal of Education, 2(4), 76-84.
-- Benson, H. H. (2011). Socratic method. The Cambridge companion to socrates, 179-200.
-- Boa, E. A., Wattanatorn, A., & Tagong, K. (2018). The development and validation of the Blended Socratic Method of Teaching (BSMT): An instructional model to enhance critical thinking skills of undergraduate business students. Kasetsart Journal of Social Sciences, 39(1), 81-89.
-- Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J. D., Dhariwal, P., Neelakantan, A., Shyam, P., Sastry, G., Askell, A., et al. (2020). Language models are few-shot learners. Advances in Neural Information Processing Systems, 33, 1877–1901.
-- Chan, H., & Zahar, I. (2012). Maximizing Learning Outcomes by Socratic Questioning Exploring the Pedagogical Applications and Challenges among Language Lecturers at Universiti Malaysia Kelantan.
-- Copelin, M. R. (2015). " Socratic Circles are a Luxury": Exploring the Conceptualization of a Dialogic Tool in Three Science Classrooms. University of Arkansas.
-- Crogman, H., Crogman, M. T., Warner, L., Mustafa, A., & Peters, R. (2015). Developing a new teaching paradigm for the 21st century learners in the context of Socratic methodologies. British Journal of Education, Society & Behavioural Science, 9(1), 62-95.
-- Dalim, S. F., Ishak, A. S., & Hamzah, L. M. (2022). Promoting Students’ Critical Thinking Through Socratic Method: The Views and Challenges. Asian Journal of University Education, 18(4), 1034-1047.
-- Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2018). BERT: Pre-training of deep bidirectional transformers for language understanding. arXiv. preprint arXiv:1810.04805.
-- Dijkstra, R., Genç, Z., Kayal, S., & Kamps, J. (2022). Reading comprehension quiz generation using generative pre-trained transformers. <https://e.humanities.uva.nl/publications/2022/dijk_read22.pdf>.
-- El Shazly, R. (2021). Effects of artificial intelligence on english speaking anxiety and speaking performance: A case study. Expert Systems, 38(3), Article e12667.
-- Floridi, L., & Chiriatti, M. (2020). GPT-3: Its nature, scope, limits, and consequences. Minds and Machines, 30, 681-694.
-- Gabajiwala, E., Mehta, P., Singh, R., & Koshy, R. (2022). Quiz maker: Automatic quiz generation from text using NLP. In Futuristic trends in networks and computing technologies (pp. 523–533). Singapore: Springer.
-- Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., ... & Wang, H. (2023). Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997.
-- Ji, H., Han, I., & Ko, Y. (2022). A systematic review of conversational ai in language education: Focusing on the collaboration with human teachers. Journal of Research on Technology in Education, 1–16.
-- Kalyan, K. S. (2023). A survey of GPT-3 family large language models including ChatGPT and GPT-4. Natural Language Processing Journal, 100048.
-- Liu, P., Yuan, W., Fu, J., Jiang, Z., Hayashi, H., & Neubig, G. (2023). Pre-train, prompt, and predict: A systematic survey of prompting methods in natural language processing. ACM Computing Surveys, 55(9), 1-35.
-- MacNeil, S., Tran, A., Mogil, D., Bernstein, S., Ross, E., & Huang, Z. (2022). Generating diverse code explanations using the GPT-3 large language model. In Proceedings of the 2022 ACM conference on international computing education research - Volume 2, ICER ’22, page 37–39, New York, NY, USA. Association for Computing Machinery.
-- Min, B., Ross, H., Sulem, E., Veyseh, A. P. B., Nguyen, T. H., Sainz, O., Agirre, E., Heinz, I., & Roth, D. (2021). Recent advances in natural language processing via large pre-trained language models: A survey. arXiv. preprint arXiv:2111.01243.
-- Overholser, J. (1993). Elements of the Socratic method: I. Systematic questioning.. Psychotherapy, 30, 67-74. <https://doi.org/10.1037/0033-3204.30.1.67>.
-- Porter, E. G. (2015). The Socratic method. In D. Maranville, L. R. Bliss, C. W. Kaas, & A. Sedillo López (Eds.), Building on best practices: Transforming legal education in a changing world 101.
-- Radford, A., Narasimhan, K., Salimans, T., Sutskever, I., et al. (2018). Improving language understanding by generative pre-training Accessed: 2023-01-22.
-- Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., Zhou, Y., Li, W., Liu, P. J., et al. (2020). Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of Machine Learning Research, 21(140), 1–67.
-- Riffel, C. (2014). The Socratic method reloaded: How to make it work in large classes?. Canterbury Law Review, 20, 125-135.
-- Soccio, D. J. (2015). Archetypes of wisdom: An introduction to philosophy. Boston, MA: Cengage Learning.
-- Tarrant, H. (2006). Socratic method and Socratic truth. A companion to Socrates, 254.
-- Tay, Y., Dehghani, M., Bahri, D., & Metzler, D. (2022). Efficient transformers: A survey. ACM Computing Surveys, 55(6), 1–28.
-- Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, & Polosukhin, I. (2017). Attention is all you need. Advances in Neural Information Processing Systems, 30. preprint arXiv:2212.01020.
-- Vincent Hogshead, R. M. (2017). How An English Teacher May Draw From The Socratic Seminar Method In Order To Further Engage Tenth Grade Students During Discussion.
-- White, J., Fu, Q., Hays, S., Sandborn, M., Olea, C., Gilbert, H., ... & Schmidt, D. C. (2023). A prompt pattern catalog to enhance prompt engineering with chatgpt. arXiv preprint arXiv:2302.11382.
+The dialogue management leverages state machine concepts, where the dialogue progresses through a series of states (e.g., receiving beliefs, checking for philosophical concepts, identifying inconsistencies) based on the user's input and the system's assessments. This structured approach facilitates a focused and coherent exploration of beliefs, mimicking the iterative, deep-diving nature of the Socratic method.
