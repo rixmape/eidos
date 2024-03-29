@@ -1,5 +1,6 @@
 # References (Chicago Style)
 
+- Topsakal, Oguzhan, and Tahir Cetin Akinci. "Creating large language model applications utilizing langchain: A primer on developing llm apps fast." In International Conference on Applied Engineering and Natural Sciences, vol. 1, no. 1, pp. 1050-1056. 2023.
 - Abou-Hanna, Jacob J., Sonal T. Owens, Jami A. Kinnucan, Shahzad I. Mian, and Joseph C. Kolars. "Resuscitating the Socratic method: student and faculty perspectives on posing probing questions during clinical teaching." Academic Medicine 96, no. 1 (2021): 113-117.
 - Abrams, Jamie R. "Reframing the Socratic method." Journal of Legal Education 64, no. 4 (2015): 562-585.
 - Achiam, Josh, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida et al. "Gpt-4 technical report." arXiv preprint arXiv:2303.08774 (2023).
