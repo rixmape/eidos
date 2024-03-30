@@ -127,14 +127,133 @@ Firestore is a flexible, scalable database from Firebase for mobile, web, and se
 
 ### Evaluation Design
 
+The evaluation of Eidos aimed to measure its effectiveness in promoting philosophical inquiry among 250 high school and college students. Participants were prompted to complete a post-engagement survey, which included Likert-scale questions, multiple-choice questions, and open-ended responses. This survey methodology enabled the immediate capture of participants' impressions and interactions with Eidos, supplemented by the collection of chat history for qualitative analysis.
+
+The survey questions assessed various aspects of participants' experiences, including the effectiveness of Eidos in encouraging critical examination of beliefs, openness to alternative perspectives, and identification of inconsistencies. Participants also provided feedback on the most valuable aspects of Eidos, changes in their approach to examining beliefs, and areas for improvement. Additionally, open-ended responses allowed participants to offer detailed insights and suggestions for enhancing the application's functionality. Quantitative analysis of Likert-scale and multiple-choice responses provided insights into the perceived effectiveness of Eidos, while qualitative analysis of open-ended responses and chat history facilitated a deeper understanding of participants' experiences and perspectives.
+
+Throughout the evaluation process, ethical considerations were prioritized, with measures implemented to ensure participant confidentiality, obtain informed consent, and handle sensitive topics delicately. While the evaluation methodology was robust, limitations such as reliance on self-reported measures and potential biases in participant responses were acknowledged. Future research directions may involve exploring the long-term effects of Eidos, addressing identified areas for improvement, and expanding demographic diversity in participant selection to enhance the generalizability of findings.
+
 ## Results and Discussion
 
 ### Likert-Scale Responses
 
+The feedback from high school and college students on Eidos demonstrates its significant effectiveness in promoting critical thinking and openness to diverse perspectives. The majority of participants reported a positive impact on their ability to critically examine beliefs and consider alternative viewpoints, highlighting Eidos' potential in philosophical education. However, a notable minority expressed concerns over the application's performance in identifying inconsistencies within their beliefs, pointing to a critical area for enhancement.
+
+1. Effective in helping me examine my beliefs more critically
+
+   |                   | High School | College | Total |
+   | ----------------- | ----------- | ------- | ----- |
+   | Strongly Agree    | 79          | 111     | 190   |
+   | Agree             | 27          | 29      | 56    |
+   | Disagree          | 1           | 0       | 1     |
+   | Strongly Disagree | 0           | 3       | 3     |
+
+2. Made me more open to considering alternative perspectives
+
+   |                   | High School | College | Total |
+   | ----------------- | ----------- | ------- | ----- |
+   | Strongly Agree    | 93          | 113     | 206   |
+   | Agree             | 12          | 27      | 39    |
+   | Disagree          | 0           | 1       | 1     |
+   | Strongly Disagree | 2           | 2       | 4     |
+
+3. Clearly identified inconsistencies in my beliefs
+
+   |                   | High School | College | Total |
+   | ----------------- | ----------- | ------- | ----- |
+   | Strongly Agree    | 76          | 115     | 191   |
+   | Agree             | 24          | 22      | 46    |
+   | Disagree          | 7           | 2       | 9     |
+   | Strongly Disagree | 0           | 4       | 4     |
+
+Eidos has shown to significantly impact students' approach to philosophical inquiry, as evidenced by the high levels of agreement on its effectiveness. The primary challenge identified involves refining the AI’s reasoning abilities and enhancing dialogue management to better tackle the complexities of personal beliefs. Improving the AI's capability to detect and articulate inconsistencies more accurately is essential for the tool's evolution.
+
+To address these challenges, a focused approach is necessary, beginning with the refinement of AI reasoning algorithms. Enhancing the dialogue management techniques is also crucial for improving how inconsistencies are identified and communicated. Furthermore, continuously gathering user feedback and applying these insights into the development process will be key in making Eidos a more effective educational tool.
+
 ### Multiple-Choice Questions
+
+The feedback on Eidos from the multiple-choice questions underlines its effectiveness, particularly emphasizing the value of dialogue-based interaction in examining beliefs. This approach, reflective of the Socratic method, resonates with participants, highlighting the significance of engaging conversations in philosophical inquiry. Participants reported a positive shift in their approach towards beliefs, noting a deeper level of reflection and consideration post-engagement with Eidos.
+
+1. Which aspect is most valuable in examining your beliefs?
+
+   |          | High School | College | Total |
+   | -------- | ----------- | ------- | ----- |
+   | Option 1 | 54          | 78      | 132   |
+   | Option 2 | 36          | 36      | 72    |
+   | Option 3 | 15          | 26      | 41    |
+   | Option 4 | 2           | 3       | 5     |
+
+   Options:
+
+   1. Engaging in dialogue
+   2. Being introduced to alternative perspectives
+   3. Identifying inconsistencies in my belief
+   4. Reference to philosophical texts
+
+2. How did Eidos change your approach to examining your beliefs?
+
+   |          | High School | College | Total |
+   | -------- | ----------- | ------- | ----- |
+   | Option 1 | 63          | 92      | 155   |
+   | Option 2 | 17          | 31      | 48    |
+   | Option 3 | 25          | 18      | 43    |
+   | Option 4 | 2           | 2       | 4     |
+
+   Options:
+
+   1. I am more careful of my beliefs and assumptions.
+   2. I reflect more on the foundations of my beliefs.
+   3. I actively seek out alternative viewpoints more often.
+   4. There has been no significant change in my approach.
+
+3. Which feature needs the most improvement?
+
+   |          | High School | College | Total |
+   | -------- | ----------- | ------- | ----- |
+   | Option 1 | 57          | 92      | 149   |
+   | Option 2 | 19          | 23      | 42    |
+   | Option 3 | 19          | 18      | 37    |
+   | Option 4 | 12          | 10      | 22    |
+
+   Options:
+
+   1. AI's understanding of complex beliefs
+   2. Ability to handle sensitive topics more delicately
+   3. Personalization of dialogue based on user responses
+   4. Diversity and selection of philosophical texts
+
+However, the feedback also points towards areas needing refinement, notably the AI's grasp of complex beliefs and its handling of sensitive topics. These aspects were identified as critical for further enhancing Eidos' capacity to facilitate a more nuanced and personalized learning experience. Addressing these challenges promises not only to bolster the tool's effectiveness but also to elevate user satisfaction significantly.
+
+In response, there's a clear path forward: enhancing the AI's understanding capabilities and fine-tuning dialogue personalization based on user feedback. Such improvements are pivotal in realizing Eidos' full potential as a platform for philosophical education, fostering a deeper, more critical engagement with philosophical discourse. With a commitment to ongoing development, Eidos stands to significantly impact the way philosophical inquiry is approached, offering a more thoughtful, inclusive, and reflective educational experience.
 
 ### Open-Ended Responses
 
-### Dialogue Analysis
+The open-ended feedback highlights Eidos' success in simulating real conversations, fostering critical thinking, and encouraging the exploration of different perspectives among high school and college students. Users appreciated the depth of engagement and learning experience provided by Eidos but also pointed out areas needing improvement, such as the user interface and chat functionality. This feedback emphasizes Eidos' potential in educational settings while identifying specific aspects that could be enhanced to better serve users' needs.
+
+#### Engagement and Learning Enhancement
+
+- "Very good conversation. It seems like I’m talking to a real person. It also help me think critically and open up my thoughts and opinions" (High School)
+- "I learned alot about belief and knowledge" (College)
+- "Each interaction helps me learn and improve my ability to understand the topics that I chose. Enhanced my learning experience by providing instant information, explanations, and ideas that U may not have come across otherwise. It’s like having a knowledgeable companion to guide me through challenging topics." (College)
+
+#### Critical Thinking and Self-Reflection Improvement
+
+- "It was great to have someone to tell your perspective on something and they'll theirs too" (High School)
+- "Answering several questions here helping me examine my beliefs more critically, when i am thinking some of dilemmas and issues that involve questions of right and wrong, good and bad, and ethical considerations." (College)
+- "In examining beliefs, engaging in dialogue, identifying inconsistencies, and being open to alternative perspectives are all valuable aspects. each contributes to a more comprehensive understanding and evaluation of one's beliefs." (College)
+
+#### Openness and Perspective Diversification
+
+- "I have a good chat with Eidos, I've been more considerable about my beliefs on someone or something it makes me understand on how to be more open on others alternative perspective." (High School)
+- "Allowing us to understand and generate human-like text. It's built on state-of-the-art machine learning techniques and extensive data to achieve high performance in natural language understanding and generation tasks. Eidos enables me to provide responses to a wide range of inquiries and engage in meaningful conversations with users like you." (College)
+- "It's great to have a conversation like that with Eidos since i'll be able to know what are the things I valued the most. it also has a feature which an individual could choose which of the topic he or she wanted to talk about. the responses of the ai were accurate to every response of the person. also, the response were quick and while answering it really makes me think." (College)
+
+#### User Experience and Interface Feedback
+
+- "The Eidos chat feature needs improvement for most of the results" (High School)
+- "Improve the user interface" (College)
+- "Need some improvement most especially when it comes to giving viewpoints." (College)
 
 ## Conclusion
+
+Eidos proves to be a valuable tool for engaging students in philosophical inquiry through AI-driven Socratic dialogues. It effectively encourages critical thinking and exploration of diverse viewpoints among students. While highly appreciated for its ability to simulate meaningful conversations and enhance learning, Eidos needs further improvement in handling complex beliefs and sensitive topics. Addressing these areas will enhance its functionality and user experience. Moving forward, Eidos holds the promise of transforming philosophical education by making it more accessible and engaging for all students, underscoring the importance of continuous development and refinement.
