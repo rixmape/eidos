@@ -38,34 +38,42 @@ Formal models for integrating the Socratic Method into computational systems hav
 
 ```mermaid
 ---
-title: Figure 1. AI-Driven Socratic Method Model
+title: Socratic Method Model for Eidos
 ---
 flowchart TD
-    A[Select Topic and Language Style] --> B[Eidos Requests Belief]
-    B --> C[Receive User Belief]
-    C --> D{Check Dialogue Limit}
+   A[Select Topic and Language Style]
+   B[Eidos Requests Belief]
+   C[Receive User Belief]
+   D{Check Response Limit}
+   E[Respond to Last Input]
+   F[Dialogue Summary]
+   G[Conclude Dialogue]
+   H{With Philo Concepts}
+   I[Fetch Reference Texts]
+   J{Identify Inconsistencies}
+   K[Show Inconsistency]
+   L[Request Clarification]
+   M[Receive User Response]
+   N[Show Implications]
+   O[Request Examples]
 
-    D -- Not Reached --> E{Contains Philo Concepts}
-
-    E -- Yes --> F
-    F[Reference Philosophical Texts]
-
-    E -- No --> G
-
-    F --> G{Identify Inconsistencies}
-
-    G -- Found --> H[Highlight Inconsistency]
-    H --> I[Request Clarification]
-    I --> J[User Clarifies/Examples]
-    J --> D
-
-    G -- None --> K[Dive Deeper]
-    K --> L[Request User to Defend Belief]
-    L --> J
-
-    D -- Limit Reached --> M[Respond to Last Input]
-    M --> N[Dialogue Summary]
-    N --> O[Conclude Dialogue]
+   A --> B
+   B --> C
+   C --> D
+   D -- Reached --> E
+   E --> F
+   F --> G
+   D -- Not Reached --> H
+   H -- Yes --> I
+   I --> J
+   H -- No --> J
+   J -- Found --> K
+   K --> L
+   L --> M
+   M --> D
+   J -- None --> N
+   N --> O
+   O --> M
 ```
 
 The formal model for implementing Eidos outlines a structured process that uses AI to simulate Socratic dialogues. Before initiating the dialogue, the user selects a topic and language style to personalize the conversation. Eidos then requests the user to state a belief, which serves as the starting point for the dialogue. The system processes the user's input to determine if it contains philosophical concepts. If it does, Eidos references a database of SEP articles to ground the discussion in established knowledge. This retrieval-augmented generation (RAG) technique ensures that the dialogue is informed by credible sources.
