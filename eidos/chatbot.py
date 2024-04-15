@@ -222,27 +222,18 @@ class ChatbotAgent:
             self.chat_count += 1
             st.rerun()
 
-    def check_prompt_limit(self):
-        return self.chat_count >= self.config.parameters["max_k_chat"]
-
     def display_summary(self):
         summary = self.pipeline.get_summary(self.chat_history)
         st.chat_message("ai").markdown(summary)
 
-    def display_info_message(self):
-        messages = self.config.info_messages
-
-        if self.chat_count == 0:
-            body = messages["first_chat"]
-            st.info(f"**:blue[Info:]** {body}", icon="ℹ️")
-
     def run(self):
         self.display_messages()
 
-        if self.check_prompt_limit():
+        if self.chat_count == 0:
+            st.info("Share an idea about the topic.", icon="ℹ️")
+        elif self.chat_count >= self.config.parameters["max_k_chat"]:
             self.display_summary()
             st.warning("You reached the limit.", icon="⚠️")
             return
 
         self.handle_input()
-        self.display_info_message()

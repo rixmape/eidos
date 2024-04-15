@@ -83,10 +83,6 @@ templates:
 
     Do not include the backticks.
 
-info_messages:
-  first_chat: |
-    Share an idea about the topic. Let's explore it together.
-
 topics:
   - title: moral problems
     caption: Understand impact of ethical behaviors.
