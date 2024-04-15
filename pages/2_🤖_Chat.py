@@ -20,18 +20,8 @@ class ChatPage:
             self.state.chatbot = ChatbotAgent(self.state.config)
         self.state.chatbot.run()
 
-    def display_next_page_link(self):
-        if (
-            self.state.chatbot.chat_count
-            >= self.state.config.parameters["min_k_chat"]
-        ):
-            st.divider()
-            next_page = "pages/3_📝_Survey.py"
-            st.page_link(next_page, label="💬 Answer survey form")
-
     def run(self):
         self.run_chatbot()
-        self.display_next_page_link()
 
 
 if __name__ == "__main__":

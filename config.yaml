@@ -12,7 +12,6 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
-  min_k_chat: 3
   max_k_chat: 5
 
 welcome_message: |
@@ -83,16 +82,6 @@ templates:
     ```
 
     Do not include the backticks.
-
-info_messages:
-  first_chat: |
-    Share an idea about the topic. Let's explore it together.
-
-  more_chat: |
-    Please make {remaining} more chat to answer the survey.
-
-  min_k_chat: |
-    You can either continue the chat or answer the survey already.
 
 topics:
   - title: moral problems
