@@ -114,37 +114,3 @@ language_styles:
     caption: Engage in academic-level discussions.
     instruction: |
       I understands jargons and complex concepts. So, feel free to use technical terms. However, I prefer readable and short response. Limit your response to 4 short sentences.
-
-survey:
-  open-ended:
-    - Describe your experience. Highlight any specific interactions.
-
-  likert-scale:
-    - Effective in helping me examine my beliefs more critically
-    - Made me more open to considering alternative perspectives
-    - Clearly identified inconsistencies in my beliefs
-
-  multiple-choice:
-    - question: |
-        Which aspect is most valuable in examining your beliefs?
-      options:
-        - Engaging in dialogue
-        - Identifying inconsistencies in my belief
-        - Being introduced to alternative perspectives
-        - Reference to philosophical texts
-
-    - question: |
-        How did Eidos change your approach to examining your beliefs?
-      options:
-        - I am more careful of my beliefs and assumptions.
-        - I actively seek out alternative viewpoints more often.
-        - I reflect more on the foundations of my beliefs.
-        - There has been no significant change in my approach.
-
-    - question: |
-        Which feature needs the most improvement?
-      options:
-        - AI's understanding of complex beliefs
-        - Diversity and selection of philosophical texts
-        - Ability to handle sensitive topics more delicately
-        - Personalization of dialogue based on user responses
