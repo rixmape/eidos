@@ -1,5 +1,6 @@
 import json
 from operator import itemgetter
+from typing import Literal
 
 import streamlit as st
 from langchain_community.chat_message_histories.streamlit import (
@@ -12,9 +13,30 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
     PromptTemplate,
 )
+from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
+
+
+class InconsistencyModel(BaseModel):
+
+    is_inconsistent: bool = Field(
+        description="Whether the user's statement has inconsistencies.",
+        default=False,
+    )
+    area_of_inconsistency: Literal[
+        "fallacy",
+        "internal_contradiction",
+        "unsupported_claim",
+    ] = Field(
+        description="The area of inconsistency in the user's statement.",
+        default="",
+    )
+    explanation: str = Field(
+        description="Explanation of the inconsistency.",
+        default="",
+    )
 
 
 class ChatbotPipeline:
@@ -28,6 +50,7 @@ class ChatbotPipeline:
         self.chain_rag_route = self.create_chain_rag_route()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
+        self.chain_inconsistency = self.create_chain_inconsistency()
         self.chain_answer = self.create_chain_answer()
         self.chain_summary = self.create_chain_summary()
 
@@ -80,6 +103,19 @@ class ChatbotPipeline:
         )
 
         return chain_context
+
+    def create_chain_inconsistency(self):
+        human_template = self.config.templates["inconsistency"]
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.system_template.strip()),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", human_template),
+            ]
+        )
+        return prompt_template | self.llm_main.with_structured_output(
+            InconsistencyModel
+        )
 
     def create_chain_answer(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -145,6 +181,16 @@ class ChatbotPipeline:
             context = self.config.templates["context"].format(context=context)
         else:
             context = ""
+
+        st.write("🔍 Checking for any inconsistencies...")
+        response = self.chain_inconsistency.invoke(
+            {
+                "user_message": user_message,
+                "history": messages,
+                "context": context,
+            }
+        )
+        print(response)
 
         st.write("📝 Writing my final thoughts...")
         response = self.chain_answer.invoke(

@@ -57,6 +57,15 @@ templates:
     <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_20>
     ```
 
+  inconsistency: |
+    Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, specify which area is inconsistent and provide a brief explanation. If the reply is consistent, do not provide any further analysis.
+
+    Here's the reply you need to consider:
+
+    ```
+    {user_message}
+    ```
+
   answer: |
     Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, explain the inconsistency and ask me for clarification. If the reply is consistent, share your thoughts and ask me a follow-up question. For each case, your analysis should be followed by a single question only.
 
@@ -113,4 +122,4 @@ language_styles:
   - title: in-depth and formal
     caption: Engage in academic-level discussions.
     instruction: |
-      I understands jargons and complex concepts. So, feel free to use technical terms. However, I prefer readable and short response. Limit your response to 4 short sentences.
+      I understands jargons and complex concepts. So, feel free to mention specific and accurate philosophical terms. Limit your response to 4 sentences.
