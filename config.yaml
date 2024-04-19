@@ -26,9 +26,7 @@ templates:
   system: |
     Assume the role of a philosopher. We are exchanging SMS messages using the Socratic method. Help me understand my beliefs, address their inconsistencies, and consider other perspectives. If I stray from philosophy, gently guide me back to the original topic.
 
-    {additional_instructions}
-
-    {{context}}
+    {instructions}
 
   rag_route: |
     Given a message, determine whether reading philosophical texts is necessary to generate a response. A message requires philosophical texts if it mentions a concept, argument, or philosopher that you think requires further explanation.
@@ -57,7 +55,7 @@ templates:
     <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_20>
     ```
 
-  inconsistency: |
+  quality: |
     Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, specify which area is inconsistent and provide a brief explanation. If the reply is consistent, explain the statement's logical coherence.
 
     Here's the reply you need to consider:
@@ -120,9 +118,10 @@ templates:
 
     {statement_quality}
 
-    Your task is to write a reply that acknowledges the consistency of the statement and raises this question:
+    Your task is to write a reply with these parts:
 
-    {question}
+    1. Acknowledge the consistency in the user's statement.
+    2. Raise this Socratic question: {question}
 
   answer_inconsistent: |
     In writing your reply, consider this statement:
@@ -133,9 +132,10 @@ templates:
 
     {statement_quality}
 
-    Your task is to write a reply that points out the inconsistency and raises this question:
+    Your task is to write a reply with these parts:
 
-    {question}
+    1. Point out the inconsistency in the user's statement.
+    2. Raise this Socratic question: {question}
 
   summary: |
     Summarize our entire conversation so far. Highlight the key points. Use direct anc concise language. Shorten your sentences.

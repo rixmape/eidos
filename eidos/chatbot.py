@@ -19,7 +19,8 @@ from langchain_openai import ChatOpenAI
 from eidos.document_manager import DocumentManager
 
 
-class InconsistencyModel(BaseModel):
+class StatementQualityModel(BaseModel):
+    """Model for the logical quality of a statement."""
 
     classification: Literal[
         "consistent",
@@ -55,17 +56,14 @@ class ChatbotPipeline:
         self.chain_rag_route = self.create_chain_rag_route()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
-        self.chain_inconsistency = self.create_chain_inconsistency()
-
-        self.chain_question_consistent = self.create_chain_question_consistent()
-        self.chain_answer_consistent = self.create_chain_answer_consistent()
-
-        self.chain_question_inconsistent = (
-            self.create_chain_question_inconsistent()
-        )
-        self.chain_answer_inconsistent = self.create_chain_answer_inconsistent()
-
+        self.chain_quality = self.create_chain_quality()
         self.chain_summary = self.create_chain_summary()
+
+        self.chain_question_consistent = self.create_chain_qst_consistent()
+        self.chain_answer_consistent = self.create_chain_ans_consistent()
+
+        self.chain_question_inconsistent = self.create_chain_qst_inconsistent()
+        self.chain_answer_inconsistent = self.create_chain_ans_inconsistent()
 
     def initialize_llms(self):
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
@@ -78,9 +76,8 @@ class ChatbotPipeline:
         ]
 
         template = self.config.templates["system"]
-        self.system_template = template.format(
-            additional_instructions=" ".join(instructions)
-        )
+        template = template.format(instructions=" ".join(instructions))
+        self.system_template = template.strip()
 
     def create_chain_rag_route(self):
         template = self.config.templates["rag_route"]
@@ -88,19 +85,17 @@ class ChatbotPipeline:
         return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_query_expansion(self):
-        system_template = self.config.templates["query_expansion"]
-        human_template = "{user_message}"
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", system_template),
+                ("system", self.config.templates["query_expansion"]),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
+                ("human", "{user_message}"),
             ]
         )
         return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_context(self):
-        chain_context = (
+        return (
             {
                 "user_message": itemgetter("user_message"),
                 "history": itemgetter("history"),
@@ -110,44 +105,39 @@ class ChatbotPipeline:
             | self.format_documents
         )
 
-        return chain_context
-
-    def create_chain_inconsistency(self):
-        human_template = self.config.templates["inconsistency"]
+    def create_chain_quality(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.system_template.strip()),
+                ("system", f"{self.system_template}\n\n{{context}}"),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
+                ("human", self.config.templates["quality"]),
             ]
         )
         return prompt_template | self.llm_main.with_structured_output(
-            InconsistencyModel
+            StatementQualityModel
         )
 
-    def create_chain_question_inconsistent(self):
-        human_template = self.config.templates["question_inconsistent"]
+    def create_chain_qst_inconsistent(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.system_template.strip()),
+                ("system", self.system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
+                ("human", self.config.templates["question_inconsistent"]),
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()
 
-    def create_chain_question_consistent(self):
-        human_template = self.config.templates["question_consistent"]
+    def create_chain_qst_consistent(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", human_template),
+                ("human", self.config.templates["question_consistent"]),
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()
 
-    def create_chain_answer_consistent(self):
+    def create_chain_ans_consistent(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
@@ -157,7 +147,7 @@ class ChatbotPipeline:
         )
         return prompt_template | self.llm_main | StrOutputParser()
 
-    def create_chain_answer_inconsistent(self):
+    def create_chain_ans_inconsistent(self):
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
@@ -168,11 +158,10 @@ class ChatbotPipeline:
         return prompt_template | self.llm_main | StrOutputParser()
 
     def create_chain_summary(self):
-        system_template = self.config.templates["summary"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 MessagesPlaceholder(variable_name="history"),
-                ("human", system_template),
+                ("human", self.config.templates["summary"]),
             ]
         )
         return prompt_template | self.llm_helper | StrOutputParser()
@@ -223,14 +212,14 @@ class ChatbotPipeline:
             context = ""
 
         st.write("🔍 Checking for any inconsistencies...")
-        quality = self.chain_inconsistency.invoke(
+        quality = self.chain_quality.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
                 "context": context,
             }
         )
-        statement_quality_message = (
+        quality_message = (
             f"The statement is logically {quality.classification}."
             f" {quality.explanation}"
         )
@@ -240,8 +229,7 @@ class ChatbotPipeline:
             {
                 "user_message": user_message,
                 "history": messages,
-                "context": "",  # TODO: Hack to avoid the context; fix it
-                "statement_quality": statement_quality_message,
+                "statement_quality": quality_message,
             }
         )
 
@@ -250,8 +238,7 @@ class ChatbotPipeline:
             {
                 "user_message": user_message,
                 "history": messages,
-                "context": "",  # TODO: Hack to avoid the context; fix it
-                "statement_quality": statement_quality_message,
+                "statement_quality": quality_message,
                 "question": question,
             }
         )
