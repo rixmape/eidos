@@ -3,7 +3,7 @@ parameters:
   llm_helper: gpt-3.5-turbo
 
   embedding_model: text-embedding-3-small
-  embedding_dimensions: 512
+  embedding_dimensions: 1536
   embedding_chunk_size: 1000
   embedding_chunk_overlap: 200
 
