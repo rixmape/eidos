@@ -22,19 +22,21 @@ from eidos.document_manager import DocumentManager
 class InconsistencyModel(BaseModel):
 
     is_inconsistent: bool = Field(
-        description="Whether the user's statement has inconsistencies.",
+        description="Whether the statement has inconsistencies.",
         default=False,
     )
-    area_of_inconsistency: Literal[
+    type: Literal[
         "fallacy",
-        "internal_contradiction",
-        "unsupported_claim",
+        "external contradiction with philosophical texts",
+        "external contradiction with previous statements",
+        "internal contradiction within the statement",
+        "unsupported claim",
     ] = Field(
-        description="The area of inconsistency in the user's statement.",
+        description="Type of inconsistency in the statement, if any.",
         default="",
     )
     explanation: str = Field(
-        description="Explanation of the inconsistency.",
+        description="If the statement is inconsistent, the explanation of the inconsistency. If not, an explanation of the statement.",
         default="",
     )
 
@@ -51,7 +53,11 @@ class ChatbotPipeline:
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_inconsistency = self.create_chain_inconsistency()
-        self.chain_answer = self.create_chain_answer()
+        self.chain_question_reasoning = self.create_chain_question_reasoning()
+        self.chain_question_thinking = self.create_chain_question_reasoning()
+        self.chain_answer_consistent = self.create_chain_answer_consistent()
+        self.chain_answer_inconsistent = self.create_chain_answer_inconsistent()
+
         self.chain_summary = self.create_chain_summary()
 
     def initialize_llms(self):
@@ -66,11 +72,6 @@ class ChatbotPipeline:
 
         template = self.config.templates["system"]
         self.system_template = template.format(
-            additional_instructions=" ".join(instructions)
-        )
-
-        template = self.config.templates["answer"]
-        self.answer_template = template.format(
             additional_instructions=" ".join(instructions)
         )
 
@@ -117,12 +118,44 @@ class ChatbotPipeline:
             InconsistencyModel
         )
 
-    def create_chain_answer(self):
+    def create_chain_question_reasoning(self):
+        human_template = self.config.templates["question_reasoning"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", self.answer_template.strip()),
+                ("human", human_template),
+            ]
+        )
+        return prompt_template | self.llm_main | StrOutputParser()
+
+    def create_chain_question_reasoning(self):
+        human_template = self.config.templates["question_thinking"]
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.system_template.strip()),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", human_template),
+            ]
+        )
+        return prompt_template | self.llm_main | StrOutputParser()
+
+    def create_chain_answer_consistent(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.system_template.strip()),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", self.config.templates["answer_consistent"]),
+            ]
+        )
+        return prompt_template | self.llm_main | StrOutputParser()
+
+    def create_chain_answer_inconsistent(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.system_template.strip()),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", self.config.templates["answer_inconsistent"]),
             ]
         )
         return prompt_template | self.llm_main | StrOutputParser()
@@ -162,7 +195,7 @@ class ChatbotPipeline:
         )
 
         if "fetch" in rag_route:
-            st.write("🔍 Exploring deeper implications of your belief...")
+            st.write("💡 Exploring deeper implications of your statement...")
             expansion = self.chain_query_expansion.invoke(
                 {
                     "user_message": user_message,
@@ -190,16 +223,46 @@ class ChatbotPipeline:
                 "context": context,
             }
         )
-        print(response)
 
-        st.write("📝 Writing my final thoughts...")
-        response = self.chain_answer.invoke(
-            {
-                "user_message": user_message,
-                "history": messages,
-                "context": context,
-            }
-        )
+        st.write("❓ Generating the best question to ask...")
+        if response.is_inconsistent:
+            question = self.chain_question_reasoning.invoke(
+                {
+                    "classification": response.type,
+                    "explanation": response.explanation,
+                    "user_message": user_message,
+                    "history": messages,
+                    "context": context,
+                }
+            )
+            response = self.chain_answer_inconsistent.invoke(
+                {
+                    "classification": response.type,
+                    "explanation": response.explanation,
+                    "user_message": user_message,
+                    "question": question,
+                    "history": messages,
+                    "context": context,
+                }
+            )
+        else:
+            question = self.chain_question_thinking.invoke(
+                {
+                    "explanation": response.explanation,
+                    "user_message": user_message,
+                    "history": messages,
+                    "context": context,
+                }
+            )
+            response = self.chain_answer_consistent.invoke(
+                {
+                    "explanation": response.explanation,
+                    "user_message": user_message,
+                    "question": question,
+                    "history": messages,
+                    "context": context,
+                }
+            )
 
         if context:
             context = context.split("\n\n", 1)[1]  # Remove the template

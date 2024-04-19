@@ -58,7 +58,7 @@ templates:
     ```
 
   inconsistency: |
-    Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, specify which area is inconsistent and provide a brief explanation. If the reply is consistent, do not provide any further analysis.
+    Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, specify which area is inconsistent and provide a brief explanation. If the reply is consistent, explain the statement's logical coherence.
 
     Here's the reply you need to consider:
 
@@ -66,16 +66,68 @@ templates:
     {user_message}
     ```
 
-  answer: |
-    Analyze the given reply to identify any inconsistencies. These include logical fallacies, unsupported claims, and internal contradictions. If you find any, explain the inconsistency and ask me for clarification. If the reply is consistent, share your thoughts and ask me a follow-up question. For each case, your analysis should be followed by a single question only.
+  question_thinking: |
+    The given statement is consistent in terms of reasoning. Here's the explanation:
 
-    {additional_instructions}
+    {explanation}
 
-    Here's the reply you need to consider:
+    Your task is to generate a question that targets the parts of user's thinking. Here are some sample questions:
+
+    - On what information are you basing that comment?
+    - What experience convinced you of this?
+    - Could you explain your reasoning?
+    - What exactly are you taking for granted here?
+    - Why are you assuming that? Shouldn't we rather assume that…?
+    - What are you implying when you say…?
+    - If we do this, what is likely to happen as a result?
+    - Is there another point of view we should consider?
+
+    Choose one of these questions or create your own. Here's the statement you need to consider:
 
     ```
-    {{user_message}}
+    {user_message}
     ```
+
+  question_reasoning: |
+    The given statement is inconsistent in terms of {classification}. Here's the explanation:
+
+    {explanation}
+
+    Your task is to generate a question that targets the quality of user's reasoning. Here are some sample questions:
+
+    - Could you elaborate on what you are saying?
+    - Could you give me an example or illustration of your point?
+    - Could you be more specific?
+    - Could you give me more details about that?
+    - How could we check that to see if it is true?
+    - I don't see how what you said bears on the question. Could you show me how it is relevant?
+    - Could you explain what you think the connection is between your statement and the question we have focused on?
+    - What points of view are relevant to this issue?
+    - What relevant points of view have I ignored thus far?
+
+    Choose one of these questions or create your own. Here's the statement you need to consider:
+
+    ```
+    {user_message}
+    ```
+
+  answer_consistent: |
+    The given statement is consistent in terms of reasoning. Here's the explanation:
+
+    {explanation}
+
+    Your task is to write a reply that acknowledges the consistency of the statement and raises this question:
+
+    {question}
+
+  answer_inconsistent: |
+    The given statement is inconsistent because of {classification}. Here's the explanation:
+
+    {explanation}
+
+    Your task is to write a reply that points out the inconsistency and raises this question:
+
+    {question}
 
   summary: |
     Summarize our entire conversation so far. Highlight the key points. Use direct anc concise language. Shorten your sentences.
