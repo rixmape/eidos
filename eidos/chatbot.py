@@ -21,9 +21,12 @@ from eidos.document_manager import DocumentManager
 
 class InconsistencyModel(BaseModel):
 
-    is_inconsistent: bool = Field(
-        description="Whether the statement has inconsistencies.",
-        default=False,
+    classification: Literal[
+        "consistent",
+        "inconsistent",
+    ] = Field(
+        description="Whether the statement is consistent or inconsistent.",
+        default="consistent",
     )
     type: Literal[
         "fallacy",
@@ -36,7 +39,7 @@ class InconsistencyModel(BaseModel):
         default="",
     )
     explanation: str = Field(
-        description="If the statement is inconsistent, the explanation of the inconsistency. If not, an explanation of the statement.",
+        description="Explanation for the classification of the statement.",
         default="",
     )
 
@@ -53,9 +56,13 @@ class ChatbotPipeline:
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_inconsistency = self.create_chain_inconsistency()
-        self.chain_question_reasoning = self.create_chain_question_reasoning()
-        self.chain_question_thinking = self.create_chain_question_reasoning()
+
+        self.chain_question_consistent = self.create_chain_question_consistent()
         self.chain_answer_consistent = self.create_chain_answer_consistent()
+
+        self.chain_question_inconsistent = (
+            self.create_chain_question_inconsistent()
+        )
         self.chain_answer_inconsistent = self.create_chain_answer_inconsistent()
 
         self.chain_summary = self.create_chain_summary()
@@ -118,8 +125,8 @@ class ChatbotPipeline:
             InconsistencyModel
         )
 
-    def create_chain_question_reasoning(self):
-        human_template = self.config.templates["question_reasoning"]
+    def create_chain_question_inconsistent(self):
+        human_template = self.config.templates["question_inconsistent"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
@@ -129,8 +136,8 @@ class ChatbotPipeline:
         )
         return prompt_template | self.llm_main | StrOutputParser()
 
-    def create_chain_question_reasoning(self):
-        human_template = self.config.templates["question_thinking"]
+    def create_chain_question_consistent(self):
+        human_template = self.config.templates["question_consistent"]
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template.strip()),
@@ -216,53 +223,38 @@ class ChatbotPipeline:
             context = ""
 
         st.write("🔍 Checking for any inconsistencies...")
-        response = self.chain_inconsistency.invoke(
+        quality = self.chain_inconsistency.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
                 "context": context,
             }
         )
+        statement_quality_message = (
+            f"The statement is logically {quality.classification}."
+            f" {quality.explanation}"
+        )
 
         st.write("❓ Generating the best question to ask...")
-        if response.is_inconsistent:
-            question = self.chain_question_reasoning.invoke(
-                {
-                    "classification": response.type,
-                    "explanation": response.explanation,
-                    "user_message": user_message,
-                    "history": messages,
-                    "context": context,
-                }
-            )
-            response = self.chain_answer_inconsistent.invoke(
-                {
-                    "classification": response.type,
-                    "explanation": response.explanation,
-                    "user_message": user_message,
-                    "question": question,
-                    "history": messages,
-                    "context": context,
-                }
-            )
-        else:
-            question = self.chain_question_thinking.invoke(
-                {
-                    "explanation": response.explanation,
-                    "user_message": user_message,
-                    "history": messages,
-                    "context": context,
-                }
-            )
-            response = self.chain_answer_consistent.invoke(
-                {
-                    "explanation": response.explanation,
-                    "user_message": user_message,
-                    "question": question,
-                    "history": messages,
-                    "context": context,
-                }
-            )
+        question = self.chain_question_inconsistent.invoke(
+            {
+                "user_message": user_message,
+                "history": messages,
+                "context": "",  # TODO: Hack to avoid the context; fix it
+                "statement_quality": statement_quality_message,
+            }
+        )
+
+        st.write("📝 Bringing all my thoughts together...")
+        response = self.chain_answer_inconsistent.invoke(
+            {
+                "user_message": user_message,
+                "history": messages,
+                "context": "",  # TODO: Hack to avoid the context; fix it
+                "statement_quality": statement_quality_message,
+                "question": question,
+            }
+        )
 
         if context:
             context = context.split("\n\n", 1)[1]  # Remove the template
