@@ -118,8 +118,10 @@ class ChatbotPipeline:
                 ("human", self.config.templates["quality"]),
             ]
         )
-        return prompt_template | self.llm_main.with_structured_output(
-            StatementQualityModel
+        return (
+            prompt_template
+            | self.llm_main.with_structured_output(StatementQualityModel)
+            | self.format_quality
         )
 
     def create_chain_qst_inconsistent(self):
@@ -173,7 +175,13 @@ class ChatbotPipeline:
 
     def format_documents(self, docs):
         context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
-        return f"{self.config.templates["context"]}\n\n{context}"
+        return f"{self.config.templates['context']}\n\n{context}"
+
+    def format_quality(self, quality):
+        return (
+            f"The statement is logically {quality.classification}."
+            f" {quality.explanation}"
+        )
 
     def get_messages_from_history(self, history):
         messages = []
@@ -196,7 +204,7 @@ class ChatbotPipeline:
         else:
             context = None
 
-        st.write("🔍 Checking for any inconsistencies...")
+        st.write("🔍 Checking for inconsistency...")
         quality = self.chain_quality.invoke(
             {
                 "user_message": user_message,
@@ -204,17 +212,13 @@ class ChatbotPipeline:
                 "context": context,
             }
         )
-        quality_message = (
-            f"The statement is logically {quality.classification}."
-            f" {quality.explanation}"
-        )
 
         st.write("❓ Generating the best question to ask...")
         question = self.chain_question_inconsistent.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
-                "statement_quality": quality_message,
+                "statement_quality": quality,
             }
         )
 
@@ -223,7 +227,7 @@ class ChatbotPipeline:
             {
                 "user_message": user_message,
                 "history": messages,
-                "statement_quality": quality_message,
+                "statement_quality": quality,
                 "question": question,
             }
         )
