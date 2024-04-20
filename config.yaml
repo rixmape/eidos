@@ -71,7 +71,7 @@ templates:
     {user_message}
     ```
 
-  question_consistent: |
+  question: |
     In writing your reply, consider this statement:
 
     ```
@@ -80,6 +80,11 @@ templates:
 
     {statement_quality}
 
+    {question_instruction}
+
+    Choose one of these questions or create your own.
+
+  question_instruction_consistent: |
     Your task is to generate a question that targets the parts of user's thinking. Here are some sample questions:
 
     - On what information are you basing that comment?
@@ -91,17 +96,7 @@ templates:
     - If we do this, what is likely to happen as a result?
     - Is there another point of view we should consider?
 
-    Choose one of these questions or create your own.
-
-  question_inconsistent: |
-    In writing your reply, consider this statement:
-
-    ```
-    {user_message}
-    ```
-
-    {statement_quality}
-
+  question_instruction_inconsistent: |
     Your task is to generate a question that targets the quality of user's reasoning. Here are some sample questions:
 
     - Could you elaborate on what you are saying?
@@ -114,9 +109,7 @@ templates:
     - What points of view are relevant to this issue?
     - What relevant points of view have I ignored thus far?
 
-    Choose one of these questions or create your own.
-
-  answer_consistent: |
+  answer: |
     In writing your reply, consider this statement:
 
     ```
@@ -127,20 +120,13 @@ templates:
 
     Your task is to write a reply with these parts:
 
+    {answer_instruction}
+
+  answer_instruction_consistent: |
     1. Acknowledge the consistency in the user's statement.
     2. Raise this Socratic question: {question}
 
-  answer_inconsistent: |
-    In writing your reply, consider this statement:
-
-    ```
-    {user_message}
-    ```
-
-    {statement_quality}
-
-    Your task is to write a reply with these parts:
-
+  answer_instruction_inconsistent: |
     1. Point out the inconsistency in the user's statement.
     2. Raise this Socratic question: {question}
 

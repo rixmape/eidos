@@ -72,11 +72,8 @@ class ChatbotPipeline:
         self.chain_quality = self.create_chain_quality()
         self.chain_summary = self.create_chain_summary()
 
-        self.chain_question_consistent = self.create_chain_qst_consistent()
-        self.chain_answer_consistent = self.create_chain_ans_consistent()
-
-        self.chain_question_inconsistent = self.create_chain_qst_inconsistent()
-        self.chain_answer_inconsistent = self.create_chain_ans_inconsistent()
+        self.chain_question = self.create_chain_with_history("question")
+        self.chain_answer = self.create_chain_with_history("answer")
 
     def initialize_llms(self):
         self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
@@ -128,45 +125,20 @@ class ChatbotPipeline:
         )
         return chain.with_config({"run_name": "Statement Quality"})
 
-    def create_chain_qst_inconsistent(self):
+    def create_chain_with_history(self, template_key):
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self.system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["question_inconsistent"]),
+                ("human", self.config.templates[template_key]),
             ]
         )
-        return prompt_template | self.llm_main | StrOutputParser()
-
-    def create_chain_qst_consistent(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.system_template.strip()),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["question_consistent"]),
-            ]
+        chain = prompt_template | self.llm_main | StrOutputParser()
+        return chain.with_config(
+            {
+                "run_name": f"{template_key.capitalize()} Generation",
+            }
         )
-        return prompt_template | self.llm_main | StrOutputParser()
-
-    def create_chain_ans_consistent(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.system_template.strip()),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["answer_consistent"]),
-            ]
-        )
-        return prompt_template | self.llm_main | StrOutputParser()
-
-    def create_chain_ans_inconsistent(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.system_template.strip()),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["answer_inconsistent"]),
-            ]
-        )
-        return prompt_template | self.llm_main | StrOutputParser()
 
     def create_chain_summary(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -218,28 +190,46 @@ class ChatbotPipeline:
         )
 
         st.write("❓ Generating the best question to ask...")
-        question = self.chain_question_inconsistent.invoke(
+        if "inconsistent" in quality:
+            question_instruction = self.config.templates[
+                "question_instruction_inconsistent"
+            ]
+            answer_instruction = self.config.templates[
+                "answer_instruction_inconsistent"
+            ]
+        else:
+            question_instruction = self.config.templates[
+                "question_instruction_consistent"
+            ]
+            answer_instruction = self.config.templates[
+                "answer_instruction_consistent"
+            ]
+
+        question = self.chain_question.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
                 "statement_quality": quality,
+                "question_instruction": question_instruction,
             }
         )
 
         st.write("📝 Bringing all my thoughts together...")
-        route = self.chain_answer_inconsistent.invoke(
+        answer_instruction = answer_instruction.format(question=question)
+        answer = self.chain_answer.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
                 "statement_quality": quality,
                 "question": question,
+                "answer_instruction": answer_instruction,
             }
         )
 
         if context:
             context = context.split("\n\n", 1)[1]  # Remove the template
 
-        return {"message": route, "context": context}
+        return {"message": answer, "context": context}
 
     def get_summary(self, history):
         messages = self.get_messages_from_history(history)
