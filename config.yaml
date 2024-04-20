@@ -28,12 +28,15 @@ templates:
 
     {instructions}
 
-  rag_route: |
-    Given a message, determine whether reading philosophical texts is necessary to generate a response. A message requires philosophical texts if it mentions a concept, argument, or philosopher that you think requires further explanation.
+  route: |
+    Assume the role of a message router. You are an expert at routing a message to either a vectorstore or a large language model (LLM). The vectorstore conatains a huge collection of philosophical texts that can be searched for relevant information. While the LLM can respond to a wide range of messages, using the vectorstore ensures that the responses are grounded on established facts. There is no need to access the vectorstore when the message is a question or a general statement that can be answered by the LLM. However, when the message is a claim or a statement that requires a factual basis, mentions a specific philosopher, or requires a reference to a philosophical text, you should route the message to the vectorstore.
 
-    If it requires texts, reply `fetch documents`. If not, reply `continue conversation`. Respond with these exact phrases. Do not include the backticks.
+    Your response is two-fold:
 
-    Here's the message you need to consider:
+    1. Provide a brief explanation of the routing decision.
+    2. Respond with either `llm` or `vectorstore` to indicate your choice.
+
+    Here's the message you need to route:
 
     ```
     {user_message}
@@ -42,17 +45,21 @@ templates:
   context: |
     Before replying, read and understand the texts below. Use them in the conversation if they relate to my last message. If not, use your own knowledge to lead the conversation.
 
-    {context}
+  expansion: |
+    Assume the role of a philosophy professor. You are an expert at interpreting a message and writing a paragraph that expands on the message's content. The expansion should contain additional details, examples, or explanations that makes references to specific philosophical concepts. It should look like a paragraph from a philosophy textbook or online article from Stanford Encyclopedia of Philosophy. The expansion must be followed by a list of 20 technical words or phrases related to the topic.
 
-  query_expansion: |
-    Rewrite my last message to add context and depth relevant to our conversation. Do not answer the last message directly. Instead, expand it only. The revision should have more details that were not initially mentioned. Finally, conclude with 20 specific keywords or jargons related to the expanded content.
-
-    Format your response as follows:
+    Format your response as follows, excluding the backticks:
 
     ```
-    <EXPANDED_MESSAGE>
+    <EXPANSION>
 
-    <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_20>
+    <KEY_TERM_1>, <KEY_TERM_2>, <KEY_TERM_3>, ..., <KEY_TERM_20>
+    ```
+
+    Here's the message you need to expand:
+
+    ```
+    {user_message}
     ```
 
   quality: |
@@ -64,7 +71,7 @@ templates:
     {user_message}
     ```
 
-  question_consistent: |
+  question: |
     In writing your reply, consider this statement:
 
     ```
@@ -73,57 +80,36 @@ templates:
 
     {statement_quality}
 
-    Your task is to generate a question that targets the parts of user's thinking. Here are some sample questions:
+    {question_instruction}
 
-    - On what information are you basing that comment?
-    - What experience convinced you of this?
-    - Could you explain your reasoning?
-    - What exactly are you taking for granted here?
-    - Why are you assuming that? Shouldn't we rather assume that…?
-    - What are you implying when you say…?
-    - If we do this, what is likely to happen as a result?
-    - Is there another point of view we should consider?
+  question_instruction_consistent: |
+    Generate a Socratic question that engage the user in deeper reflection on their consistent belief statement, focusing on intellectual rigor and comprehensive understanding. When generating question, consider the user’s statement and the entire chat history to select and generate the most appropriate question that aligns with the user’s current cognitive exploration.
 
-    Choose one of these questions or create your own.
+    Sample questions that targets a particular aspect of user's reasoning:
 
-  question_inconsistent: |
-    In writing your reply, consider this statement:
+    - Purpose: What is the main goal you hope to achieve with this belief? Can you clarify your primary purpose here?
+    - Information: On what information or data are you basing your belief? How do you know this information is accurate?
+    - Assumptions: What assumptions are you making in this argument? Why have you chosen these particular assumptions?
+    - Consequences: If your belief is acted upon, what do you think will be the consequences? Have you considered both positive and negative outcomes?
+    - Inferences: How did you arrive at this conclusion from the information presented? Can you explain the logical steps that led to your inference?
 
-    ```
-    {user_message}
-    ```
+    Choose and generate the best question for the current statement and chat history to ensure the questioning is highly relevant and effective in advancing the user's reflective and critical thinking process.
 
-    {statement_quality}
+  question_instruction_inconsistent: |
+    Generate a Socratic question that challenges the user to address inconsistencies in their belief statement, focusing on improving clarity, precision, and logical coherence. When generating the question, carefully consider the user’s statement and the entire chat history to select and generate the most appropriate question that identifies and targets discrepancies in the user's reasoning.
 
-    Your task is to generate a question that targets the quality of user's reasoning. Here are some sample questions:
+    Sample questions that target specific flaws in the user's reasoning:
 
-    - Could you elaborate on what you are saying?
-    - Could you give me an example or illustration of your point?
-    - Could you be more specific?
-    - Could you give me more details about that?
-    - How could we check that to see if it is true?
-    - I don't see how what you said bears on the question. Could you show me how it is relevant?
-    - Could you explain what you think the connection is between your statement and the question we have focused on?
-    - What points of view are relevant to this issue?
-    - What relevant points of view have I ignored thus far?
+    - Clarity: Could you elaborate further on your point? Can you provide an example to illustrate what you mean?
+    - Precision: Could you specify what you mean by this statement? Can you provide more detailed information?
+    - Accuracy: On what evidence are you basing this claim? How can we verify the accuracy of these facts?
+    - Relevance: How is this point relevant to our main discussion? Can you clarify its connection to our topic?
+    - Logicalness: How do you reconcile these seemingly contradictory statements? Can you explain the reasoning behind your conclusions?
+    - Fairness: Have you considered all perspectives on this issue fairly? Why might someone disagree with your position?
 
-    Choose one of these questions or create your own.
+    Choose and generate the best question for the current statement and chat history to ensure the questioning effectively addresses and helps resolve the inconsistencies, thereby enhancing the user’s logical thinking and argumentation skills.
 
-  answer_consistent: |
-    In writing your reply, consider this statement:
-
-    ```
-    {user_message}
-    ```
-
-    {statement_quality}
-
-    Your task is to write a reply with these parts:
-
-    1. Acknowledge the consistency in the user's statement.
-    2. Raise this Socratic question: {question}
-
-  answer_inconsistent: |
+  answer: |
     In writing your reply, consider this statement:
 
     ```
@@ -134,8 +120,8 @@ templates:
 
     Your task is to write a reply with these parts:
 
-    1. Point out the inconsistency in the user's statement.
-    2. Raise this Socratic question: {question}
+    1. Recognize the consistency or inconsistency in the user's statement by providing an explanation.
+    2. Ask this Socratic question: {question}
 
   summary: |
     Summarize our entire conversation so far. Highlight the key points. Use direct anc concise language. Shorten your sentences.
