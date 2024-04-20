@@ -194,15 +194,9 @@ class ChatbotPipeline:
             question_instruction = self.config.templates[
                 "question_instruction_inconsistent"
             ]
-            answer_instruction = self.config.templates[
-                "answer_instruction_inconsistent"
-            ]
         else:
             question_instruction = self.config.templates[
                 "question_instruction_consistent"
-            ]
-            answer_instruction = self.config.templates[
-                "answer_instruction_consistent"
             ]
 
         question = self.chain_question.invoke(
@@ -215,14 +209,12 @@ class ChatbotPipeline:
         )
 
         st.write("📝 Bringing all my thoughts together...")
-        answer_instruction = answer_instruction.format(question=question)
         answer = self.chain_answer.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
                 "statement_quality": quality,
                 "question": question,
-                "answer_instruction": answer_instruction,
             }
         )
 
