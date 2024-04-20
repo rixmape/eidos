@@ -45,8 +45,6 @@ templates:
   context: |
     Before replying, read and understand the texts below. Use them in the conversation if they relate to my last message. If not, use your own knowledge to lead the conversation.
 
-    {context}
-
   expansion: |
     Assume the role of a philosophy professor. You are an expert at interpreting a message and writing a paragraph that expands on the message's content. The expansion should contain additional details, examples, or explanations that makes references to specific philosophical concepts. It should look like a paragraph from a philosophy textbook or online article from Stanford Encyclopedia of Philosophy. The expansion must be followed by a list of 20 technical words or phrases related to the topic.
 

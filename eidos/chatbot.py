@@ -105,11 +105,7 @@ class ChatbotPipeline:
 
     def create_chain_context(self):
         return (
-            {
-                "user_message": itemgetter("user_message"),
-                "history": itemgetter("history"),
-            }
-            | self.chain_expansion
+            self.chain_expansion
             | self.document_manager.retriever
             | self.format_documents
         )
@@ -176,7 +172,8 @@ class ChatbotPipeline:
         return prompt_template | self.llm_helper | StrOutputParser()
 
     def format_documents(self, docs):
-        return "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
+        context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
+        return f"{self.config.templates["context"]}\n\n{context}"
 
     def get_messages_from_history(self, history):
         messages = []
@@ -192,32 +189,11 @@ class ChatbotPipeline:
         messages = self.get_messages_from_history(history)
 
         st.write("🔗 Deciding whether to read philosophical texts...")
-        route = self.chain_route.invoke(
-            {
-                "user_message": user_message,
-                "history": messages,
-            }
-        )
-
+        route = self.chain_route.invoke({"user_message": user_message})
         if route.decision == "vectorstore":
-            st.write("💡 Interpreting your statement...")
-            expansion = self.chain_expansion.invoke(
-                {
-                    "user_message": user_message,
-                    "history": messages,
-                }
-            )
-
             st.write("📚 Reading philosophical texts...")
-            context = self.chain_context.invoke(
-                {
-                    "user_message": expansion,
-                    "history": messages,
-                }
-            )
-
-            context = self.config.templates["context"].format(context=context)
-        elif route.decision == "llm":
+            context = self.chain_context.invoke({"user_message": user_message})
+        else:
             context = None
 
         st.write("🔍 Checking for any inconsistencies...")
