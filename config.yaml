@@ -29,7 +29,7 @@ templates:
     {instructions}
 
   route: |
-    You are an expert at routing a message to either a vectorstore or a large language model (LLM). The vectorstore conatains a huge collection of philosophical texts that can be searched for relevant information. While the LLM can respond to a wide range of messages, using the vectorstore ensures that the responses are grounded on established facts. There is no need to access the vectorstore when the message is a question or a general statement that can be answered by the LLM. However, when the message is a claim or a statement that requires a factual basis, mentions a specific philosopher, or requires a reference to a philosophical text, you should route the message to the vectorstore.
+    Assume the role of a message router. You are an expert at routing a message to either a vectorstore or a large language model (LLM). The vectorstore conatains a huge collection of philosophical texts that can be searched for relevant information. While the LLM can respond to a wide range of messages, using the vectorstore ensures that the responses are grounded on established facts. There is no need to access the vectorstore when the message is a question or a general statement that can be answered by the LLM. However, when the message is a claim or a statement that requires a factual basis, mentions a specific philosopher, or requires a reference to a philosophical text, you should route the message to the vectorstore.
 
     Your response is two-fold:
 
@@ -47,15 +47,21 @@ templates:
 
     {context}
 
-  query_expansion: |
-    Rewrite my last message to add context and depth relevant to our conversation. Do not answer the last message directly. Instead, expand it only. The revision should have more details that were not initially mentioned. Finally, conclude with 20 specific keywords or jargons related to the expanded content.
+  expansion: |
+    Assume the role of a philosophy professor. You are an expert at interpreting a message and writing a paragraph that expands on the message's content. The expansion should contain additional details, examples, or explanations that makes references to specific philosophical concepts. It should look like a paragraph from a philosophy textbook or online article from Stanford Encyclopedia of Philosophy. The expansion must be followed by a list of 20 technical words or phrases related to the topic.
 
-    Format your response as follows:
+    Format your response as follows, excluding the backticks:
 
     ```
-    <EXPANDED_MESSAGE>
+    <EXPANSION>
 
-    <KEYWORD_1>, <KEYWORD_2>, ..., <KEYWORD_20>
+    <KEY_TERM_1>, <KEY_TERM_2>, <KEY_TERM_3>, ..., <KEY_TERM_20>
+    ```
+
+    Here's the message you need to expand:
+
+    ```
+    {user_message}
     ```
 
   quality: |

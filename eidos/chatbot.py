@@ -67,7 +67,7 @@ class ChatbotPipeline:
         self.initialize_templates()
 
         self.chain_route = self.create_chain_route()
-        self.chain_query_expansion = self.create_chain_query_expansion()
+        self.chain_expansion = self.create_chain_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
         self.chain_summary = self.create_chain_summary()
@@ -98,14 +98,9 @@ class ChatbotPipeline:
         llm = self.llm_helper.with_structured_output(RouteModel)
         return prompt_template | llm
 
-    def create_chain_query_expansion(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.config.templates["query_expansion"]),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", "{user_message}"),
-            ]
-        )
+    def create_chain_expansion(self):
+        template = self.config.templates["expansion"]
+        prompt_template = PromptTemplate.from_template(template)
         return prompt_template | self.llm_helper | StrOutputParser()
 
     def create_chain_context(self):
@@ -114,7 +109,7 @@ class ChatbotPipeline:
                 "user_message": itemgetter("user_message"),
                 "history": itemgetter("history"),
             }
-            | self.chain_query_expansion
+            | self.chain_expansion
             | self.document_manager.retriever
             | self.format_documents
         )
@@ -206,7 +201,7 @@ class ChatbotPipeline:
 
         if route.decision == "vectorstore":
             st.write("💡 Interpreting your statement...")
-            expansion = self.chain_query_expansion.invoke(
+            expansion = self.chain_expansion.invoke(
                 {
                     "user_message": user_message,
                     "history": messages,
