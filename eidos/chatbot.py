@@ -96,19 +96,22 @@ class ChatbotPipeline:
         template = self.config.templates["route"]
         prompt_template = PromptTemplate.from_template(template)
         llm = self.llm_helper.with_structured_output(RouteModel)
-        return prompt_template | llm
+        chain = prompt_template | llm
+        return chain.with_config({"run_name": "Dialogue Route"})
 
     def create_chain_expansion(self):
         template = self.config.templates["expansion"]
         prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.llm_helper | StrOutputParser()
+        chain = prompt_template | self.llm_helper | StrOutputParser()
+        return chain.with_config({"run_name": "Text Expansion"})
 
     def create_chain_context(self):
-        return (
+        chain = (
             self.chain_expansion
             | self.document_manager.retriever
             | self.format_documents
         )
+        return chain.with_config({"run_name": "Document Retrieval"})
 
     def create_chain_quality(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -118,11 +121,12 @@ class ChatbotPipeline:
                 ("human", self.config.templates["quality"]),
             ]
         )
-        return (
+        chain = (
             prompt_template
             | self.llm_main.with_structured_output(StatementQualityModel)
             | self.format_quality
         )
+        return chain.with_config({"run_name": "Statement Quality"})
 
     def create_chain_qst_inconsistent(self):
         prompt_template = ChatPromptTemplate.from_messages(
