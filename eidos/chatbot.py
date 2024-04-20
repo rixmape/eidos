@@ -19,6 +19,19 @@ from langchain_openai import ChatOpenAI
 from eidos.document_manager import DocumentManager
 
 
+class RouteModel(BaseModel):
+    """Response model for routing a message to either LLM or vectorstore."""
+
+    explanation: str = Field(
+        description="Explanation for the route.",
+        default="",
+    )
+    decision: Literal["llm", "vectorstore"] = Field(
+        description="Name of the route.",
+        default="llm",
+    )
+
+
 class StatementQualityModel(BaseModel):
     """Model for the logical quality of a statement."""
 
@@ -53,7 +66,7 @@ class ChatbotPipeline:
         self.initialize_llms()
         self.initialize_templates()
 
-        self.chain_rag_route = self.create_chain_rag_route()
+        self.chain_route = self.create_chain_route()
         self.chain_query_expansion = self.create_chain_query_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
@@ -79,10 +92,11 @@ class ChatbotPipeline:
         template = template.format(instructions=" ".join(instructions))
         self.system_template = template.strip()
 
-    def create_chain_rag_route(self):
-        template = self.config.templates["rag_route"]
+    def create_chain_route(self):
+        template = self.config.templates["route"]
         prompt_template = PromptTemplate.from_template(template)
-        return prompt_template | self.llm_helper | StrOutputParser()
+        llm = self.llm_helper.with_structured_output(RouteModel)
+        return prompt_template | llm
 
     def create_chain_query_expansion(self):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -183,15 +197,15 @@ class ChatbotPipeline:
         messages = self.get_messages_from_history(history)
 
         st.write("🔗 Deciding whether to read philosophical texts...")
-        rag_route = self.chain_rag_route.invoke(
+        route = self.chain_route.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
             }
         )
 
-        if "fetch" in rag_route:
-            st.write("💡 Exploring deeper implications of your statement...")
+        if route.decision == "vectorstore":
+            st.write("💡 Interpreting your statement...")
             expansion = self.chain_query_expansion.invoke(
                 {
                     "user_message": user_message,
@@ -199,7 +213,7 @@ class ChatbotPipeline:
                 }
             )
 
-            st.write("📚 Reading relevant philosophical texts...")
+            st.write("📚 Reading philosophical texts...")
             context = self.chain_context.invoke(
                 {
                     "user_message": expansion,
@@ -208,8 +222,8 @@ class ChatbotPipeline:
             )
 
             context = self.config.templates["context"].format(context=context)
-        else:
-            context = ""
+        elif route.decision == "llm":
+            context = None
 
         st.write("🔍 Checking for any inconsistencies...")
         quality = self.chain_quality.invoke(
@@ -234,7 +248,7 @@ class ChatbotPipeline:
         )
 
         st.write("📝 Bringing all my thoughts together...")
-        response = self.chain_answer_inconsistent.invoke(
+        route = self.chain_answer_inconsistent.invoke(
             {
                 "user_message": user_message,
                 "history": messages,
@@ -246,7 +260,7 @@ class ChatbotPipeline:
         if context:
             context = context.split("\n\n", 1)[1]  # Remove the template
 
-        return {"message": response, "context": context}
+        return {"message": route, "context": context}
 
     def get_summary(self, history):
         messages = self.get_messages_from_history(history)

@@ -28,12 +28,15 @@ templates:
 
     {instructions}
 
-  rag_route: |
-    Given a message, determine whether reading philosophical texts is necessary to generate a response. A message requires philosophical texts if it mentions a concept, argument, or philosopher that you think requires further explanation.
+  route: |
+    You are an expert at routing a message to either a vectorstore or a large language model (LLM). The vectorstore conatains a huge collection of philosophical texts that can be searched for relevant information. While the LLM can respond to a wide range of messages, using the vectorstore ensures that the responses are grounded on established facts. There is no need to access the vectorstore when the message is a question or a general statement that can be answered by the LLM. However, when the message is a claim or a statement that requires a factual basis, mentions a specific philosopher, or requires a reference to a philosophical text, you should route the message to the vectorstore.
 
-    If it requires texts, reply `fetch documents`. If not, reply `continue conversation`. Respond with these exact phrases. Do not include the backticks.
+    Your response is two-fold:
 
-    Here's the message you need to consider:
+    1. Provide a brief explanation of the routing decision.
+    2. Respond with either `llm` or `vectorstore` to indicate your choice.
+
+    Here's the message you need to route:
 
     ```
     {user_message}
