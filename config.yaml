@@ -138,6 +138,9 @@ templates:
 
     Do not include the backticks.
 
+  web_queries: |
+    Analyze our conversation and generate 10 queries that would help me find relevant articles from Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy, and other sources of philosophical knowledge. These queries should be based on the topics discussed and the user's beliefs. Ensure that the queries are specific and focused on philosophical concepts to accurately find certain articles. Each query must be distinct to fetch as many relevant articles as possible.
+
 topics:
   - title: moral problems
     caption: Understand impact of ethical behaviors.

@@ -1,11 +1,12 @@
 import json
 from operator import itemgetter
-from typing import Literal
+from typing import List, Literal
 
 import streamlit as st
 from langchain_community.chat_message_histories.streamlit import (
     StreamlitChatMessageHistory,
 )
+from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import (
@@ -14,6 +15,7 @@ from langchain_core.prompts import (
     PromptTemplate,
 )
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
@@ -29,6 +31,15 @@ class RouteModel(BaseModel):
     decision: Literal["llm", "vectorstore"] = Field(
         description="Name of the route.",
         default="llm",
+    )
+
+
+class WebQueriesModel(BaseModel):
+    """Model for the web queries to find philosophy articles."""
+
+    queries: List[str] = Field(
+        description="List of ten queries to find philosophy articles.",
+        default=[],
     )
 
 
@@ -71,6 +82,7 @@ class ChatbotPipeline:
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
         self.chain_summary = self.create_chain_summary()
+        self.web_queries = self.create_web_queries_chain()
 
         self.chain_question = self.create_chain_with_history("question")
         self.chain_answer = self.create_chain_with_history("answer")
@@ -147,7 +159,19 @@ class ChatbotPipeline:
                 ("human", self.config.templates["summary"]),
             ]
         )
-        return prompt_template | self.llm_helper | StrOutputParser()
+        chain = prompt_template | self.llm_helper | StrOutputParser()
+        return chain.with_config({"run_name": "Summary Generation"})
+
+    def create_web_queries_chain(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="history"),
+                ("human", self.config.templates["web_queries"]),
+            ]
+        )
+        llm = self.llm_helper.with_structured_output(WebQueriesModel)
+        chain = prompt_template | llm
+        return chain.with_config({"run_name": "Suggested Reading Queries"})
 
     def format_documents(self, docs):
         context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
@@ -224,12 +248,35 @@ class ChatbotPipeline:
         return {"message": answer, "context": context}
 
     def get_summary(self, history):
+        st.write("💬 Reading previous messages...")
         messages = self.get_messages_from_history(history)
         return self.chain_summary.invoke(
             {
                 "history": messages,
             }
         )
+
+    def get_suggested_readings(self, history, max_results=5):
+        st.write("🌐 Initializing web search tool...")
+        search = GoogleSearchAPIWrapper()
+        tool = Tool(
+            name="Google Search Snippets",
+            description="Search Google for recent results.",
+            func=lambda query: search.results(query, 1),
+        )
+
+        st.write("❓ Generating search queries...")
+        messages = self.get_messages_from_history(history)
+        response = self.web_queries.invoke({"history": messages})
+
+        st.write("📚 Curating a list of suggested readings...")
+        readings = []
+        for query in response.queries:
+            result = tool.run(query)[0]
+            if not any(result["title"] == r["title"] for r in readings):
+                readings.append(result)
+
+        return readings[:max_results]
 
 
 class ChatbotAgent:
@@ -286,8 +333,44 @@ class ChatbotAgent:
             st.rerun()
 
     def display_summary(self):
-        summary = self.pipeline.get_summary(self.chat_history)
-        st.chat_message("ai").markdown(summary)
+        ai = st.chat_message("ai")
+        with ai.status(
+            "📝 Summarizing our conversation...",
+            expanded=True,
+        ) as status:
+            summary = self.pipeline.get_summary(self.chat_history)
+            status.update(
+                label="📝 Summary generated.",
+                state="complete",
+                expanded=False,
+            )
+
+        ai.markdown(summary)
+
+    def format_suggested_readings(self, results):
+        formatted_results = [
+            f"- [{result['title']}]({result['link']})" for result in results
+        ]
+        return "\n".join(formatted_results)
+
+    def display_suggested_readings(self):
+        ai = st.chat_message("ai")
+        with ai.status(
+            "📚 Curating list of suggested readings...",
+            expanded=True,
+        ) as status:
+            results = self.pipeline.get_suggested_readings(self.chat_history)
+            status.update(
+                label="📚 Suggested readings curated.",
+                state="complete",
+                expanded=False,
+            )
+
+        formatted_results = (
+            "You might find these articles interesting:\n\n"
+            + self.format_suggested_readings(results)
+        )
+        ai.markdown(formatted_results)
 
     def run(self):
         self.display_messages()
@@ -296,6 +379,7 @@ class ChatbotAgent:
             st.info("Share an idea about the topic.", icon="ℹ️")
         elif self.chat_count >= self.config.parameters["max_k_chat"]:
             self.display_summary()
+            self.display_suggested_readings()
             st.warning("You reached the limit.", icon="⚠️")
             return
 
