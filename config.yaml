@@ -124,19 +124,7 @@ templates:
     2. Ask this Socratic question: {question}
 
   summary: |
-    Summarize our entire conversation so far. Highlight the key points. Use direct anc concise language. Shorten your sentences.
-
-    Format your response as follows:
-
-    ```
-    In our conversation, we learned these ideas:
-
-    - <KEY_POINT_1>
-    - <KEY_POINT_2>
-    - <KEY_POINT_3>
-    ```
-
-    Do not include the backticks.
+    Analyze our conversation and generate a list of sentences that summarize the key points discussed. These sentences should capture the essence of our philosophical dialogue and highlight the main beliefs, arguments, and questions raised during the conversation. Ensure that the summary is concise, coherent, and reflective of the philosophical themes explored. Do not write too long sentences. Keep it simple and clear. Write a maximum of 5 sentences.
 
   web_queries: |
     Analyze our conversation and generate 10 queries that would help me find relevant articles from Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy, and other sources of philosophical knowledge. These queries should be based on the topics discussed and the user's beliefs. Ensure that the queries are specific and focused on philosophical concepts to accurately find certain articles. Each query must be distinct to fetch as many relevant articles as possible.

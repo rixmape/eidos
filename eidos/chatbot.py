@@ -34,6 +34,15 @@ class RouteModel(BaseModel):
     )
 
 
+class SummaryModel(BaseModel):
+    """Response model for summarizing a conversation."""
+
+    key_ideas: List[str] = Field(
+        description="List of topic sentences summarizing the conversation.",
+        default=[],
+    )
+
+
 class WebQueriesModel(BaseModel):
     """Model for the web queries to find philosophy articles."""
 
@@ -159,7 +168,8 @@ class ChatbotPipeline:
                 ("human", self.config.templates["summary"]),
             ]
         )
-        chain = prompt_template | self.llm_helper | StrOutputParser()
+        llm = self.llm_helper.with_structured_output(SummaryModel)
+        chain = prompt_template | llm
         return chain.with_config({"run_name": "Summary Generation"})
 
     def create_web_queries_chain(self):
@@ -196,7 +206,7 @@ class ChatbotPipeline:
     def get_response(self, user_message, history):
         messages = self.get_messages_from_history(history)
 
-        st.write("🔗 Deciding whether to read philosophical texts...")
+        st.write("🔗 Choosing best dialogue path...")
         route = self.chain_route.invoke({"user_message": user_message})
         if route.decision == "vectorstore":
             st.write("📚 Reading philosophical texts...")
@@ -213,7 +223,7 @@ class ChatbotPipeline:
             }
         )
 
-        st.write("❓ Generating the best question to ask...")
+        st.write("❓ Generating best question to ask...")
         if "inconsistent" in quality:
             question_instruction = self.config.templates[
                 "question_instruction_inconsistent"
@@ -232,7 +242,7 @@ class ChatbotPipeline:
             }
         )
 
-        st.write("📝 Bringing all my thoughts together...")
+        st.write("📝 Gathering my thoughts...")
         answer = self.chain_answer.invoke(
             {
                 "user_message": user_message,
@@ -247,14 +257,15 @@ class ChatbotPipeline:
 
         return {"message": answer, "context": context}
 
-    def get_summary(self, history):
+    def get_key_ideas(self, history):
         st.write("💬 Reading previous messages...")
         messages = self.get_messages_from_history(history)
-        return self.chain_summary.invoke(
+        response = self.chain_summary.invoke(
             {
                 "history": messages,
             }
         )
+        return response.key_ideas
 
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
@@ -269,7 +280,7 @@ class ChatbotPipeline:
         messages = self.get_messages_from_history(history)
         response = self.web_queries.invoke({"history": messages})
 
-        st.write("📚 Curating a list of suggested readings...")
+        st.write("🔍 Searching for relevant online articles...")
         readings = []
         for query in response.queries:
             result = tool.run(query)[0]
@@ -324,7 +335,10 @@ class ChatbotAgent:
             st.chat_message("human").write(query)
 
             ai = st.chat_message("ai")
-            with ai.status("🧠 Examining your statement..."):
+            with ai.status(
+                "💭 Thinking of a meaningful response...",
+                expanded=True,
+            ):
                 response = self.pipeline.get_response(query, self.chat_history)
 
             self.chat_history.add_user_message(json.dumps({"message": query}))
@@ -332,26 +346,30 @@ class ChatbotAgent:
             self.chat_count += 1
             st.rerun()
 
+    def format_key_ideas(self, sentences):
+        title = "### 📝 Summary\n\n"
+        formatted_sentences = [f"- {s}" for s in sentences]
+        return title + "\n".join(formatted_sentences)
+
     def display_summary(self):
         ai = st.chat_message("ai")
         with ai.status(
             "📝 Summarizing our conversation...",
             expanded=True,
         ) as status:
-            summary = self.pipeline.get_summary(self.chat_history)
+            key_ideas = self.pipeline.get_key_ideas(self.chat_history)
             status.update(
-                label="📝 Summary generated.",
+                label="Summary generated.",
                 state="complete",
                 expanded=False,
             )
 
-        ai.markdown(summary)
+        ai.markdown(self.format_key_ideas(key_ideas))
 
     def format_suggested_readings(self, results):
-        formatted_results = [
-            f"- [{result['title']}]({result['link']})" for result in results
-        ]
-        return "\n".join(formatted_results)
+        title = "### 📚 Suggested Readings\n\n"
+        formatted_results = [f"- [{r['title']}]({r['link']})" for r in results]
+        return title + "\n".join(formatted_results)
 
     def display_suggested_readings(self):
         ai = st.chat_message("ai")
@@ -361,16 +379,12 @@ class ChatbotAgent:
         ) as status:
             results = self.pipeline.get_suggested_readings(self.chat_history)
             status.update(
-                label="📚 Suggested readings curated.",
+                label="Suggested readings curated.",
                 state="complete",
                 expanded=False,
             )
 
-        formatted_results = (
-            "You might find these articles interesting:\n\n"
-            + self.format_suggested_readings(results)
-        )
-        ai.markdown(formatted_results)
+        ai.markdown(self.format_suggested_readings(results))
 
     def run(self):
         self.display_messages()
