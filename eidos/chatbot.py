@@ -33,29 +33,29 @@ class RouteModel(BaseModel):
     )
 
 
-class SummaryModel(BaseModel):
-    """Response model for summarizing a conversation."""
+class KeyPointsModel(BaseModel):
+    """Model for summarizing key points from a conversation."""
 
-    key_ideas: List[str] = Field(
-        description="List of topic sentences summarizing the conversation.",
+    key_points: List[str] = Field(
+        description="List of key points from the conversation.",
         default=[],
     )
 
 
-class WebQueriesModel(BaseModel):
-    """Model for the web queries to find philosophy articles."""
+class WebSearchQueriesModel(BaseModel):
+    """Model for generating web search queries."""
 
     queries: List[str] = Field(
-        description="List of ten queries to find philosophy articles.",
+        description="List of web search queries.",
         default=[],
     )
 
 
-class BeliefSuggestionsModel(BaseModel):
-    """Model for suggesting ways to explore user's beliefs."""
+class BeliefAdvicesModel(BaseModel):
+    """Model for advicing ways to explore beliefs further."""
 
-    suggestions: List[str] = Field(
-        description="List of practical suggestions to explore user's beliefs.",
+    advices: List[str] = Field(
+        description="List of advices for exploring beliefs further.",
         default=[],
     )
 
@@ -100,22 +100,22 @@ class ChatbotPipeline:
         self.chain_quality = self.create_chain_quality()
 
         # fmt: off
-        self.chain_summary = (
+        self.chain_key_points = (
             self.create_chain_with_structured_llm(
-                "summary",
-                SummaryModel,
+                "key_points",
+                KeyPointsModel,
+            )
+        )
+        self.chain_belief_advices = (
+            self.create_chain_with_structured_llm(
+                "belief_advices",
+                BeliefAdvicesModel,
             )
         )
         self.chain_web_queries = (
             self.create_chain_with_structured_llm(
-                "web_queries",
-                WebQueriesModel,
-            )
-        )
-        self.chain_belief_suggestions = (
-            self.create_chain_with_structured_llm(
-                "belief_suggestions",
-                BeliefSuggestionsModel,
+                "web_search_queries",
+                WebSearchQueriesModel,
             )
         )
         # fmt: on
@@ -191,12 +191,11 @@ class ChatbotPipeline:
     def create_chain_with_structured_llm(self, template_key, model):
         prompt_template = ChatPromptTemplate.from_messages(
             [
-                ("system", self.system_template),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", self.config.templates[template_key]),
             ]
         )
-        llm = self.llm_main.with_structured_output(model)
+        llm = self.llm_helper.with_structured_output(model)
         chain = prompt_template | llm
         run_name = f"{template_key.replace('_', ' ').title()} Generation"
         return chain.with_config({"run_name": run_name})
@@ -275,21 +274,17 @@ class ChatbotPipeline:
 
         return {"message": answer, "context": context}
 
-    def get_key_ideas(self, history):
-        st.write("💬 Reading previous messages...")
+    def get_key_points(self, history):
+        st.write("💬 Extracting key points...")
         messages = self.get_messages_from_history(history)
-        response = self.chain_summary.invoke(
-            {
-                "history": messages,
-            }
-        )
-        return response.key_ideas
+        response = self.chain_key_points.invoke({"history": messages})
+        return response.key_points
 
-    def get_belief_suggestions(self, history):
-        st.write("🧠 Analyzing your beliefs...")
+    def get_belief_advices(self, history):
+        st.write("🧠 Exploring your beliefs further...")
         messages = self.get_messages_from_history(history)
-        response = self.chain_belief_suggestions.invoke({"history": messages})
-        return response.suggestions
+        response = self.chain_belief_advices.invoke({"history": messages})
+        return response.advices
 
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
@@ -300,11 +295,11 @@ class ChatbotPipeline:
             func=lambda query: search.results(query, 1),
         )
 
-        st.write("❓ Generating search queries...")
+        st.write("❓ Generating relevant search queries...")
         messages = self.get_messages_from_history(history)
         response = self.chain_web_queries.invoke({"history": messages})
 
-        st.write("🔍 Searching for relevant online articles...")
+        st.write("🔍 Searching for online articles...")
         readings = []
         for query in response.queries:
             result = tool.run(query)[0]
@@ -360,7 +355,7 @@ class ChatbotAgent:
 
             ai = st.chat_message("ai")
             with ai.status(
-                "💭 Thinking of a meaningful response...",
+                "💭 Generating a meaningful response...",
                 expanded=True,
             ):
                 response = self.pipeline.get_response(query, self.chat_history)
@@ -370,65 +365,45 @@ class ChatbotAgent:
             self.chat_count += 1
             st.rerun()
 
-    def format_key_ideas(self, sentences):
-        title = "### 📝 Summary\n\n"
-        formatted_sentences = [f"- {s}" for s in sentences]
-        return title + "\n".join(formatted_sentences)
+    def display_titled_list(self, title, items):
+        content = "\n".join([f"- {item}" for item in items])
+        st.markdown(f"### {title}\n\n{content}")
 
-    def display_summary(self):
-        ai = st.chat_message("ai")
-        with ai.status(
-            "📝 Summarizing our conversation...",
+    def display_final_response(self):
+        container = st.chat_message("ai")
+
+        with container.status(
+            "🔚 Wrapping up the conversation...",
             expanded=True,
         ) as status:
-            key_ideas = self.pipeline.get_key_ideas(self.chat_history)
+            points = self.pipeline.get_key_points(self.chat_history)
+            advices = self.pipeline.get_belief_advices(self.chat_history)
+            readings = self.pipeline.get_suggested_readings(self.chat_history)
             status.update(
-                label="Summary generated.",
+                label="Conversation ended.",
                 state="complete",
                 expanded=False,
             )
 
-        ai.markdown(self.format_key_ideas(key_ideas))
+        with container:
+            if points:
+                self.display_titled_list(
+                    "🔑 Key Points from Conversation",
+                    points,
+                )
 
-    def format_belief_suggestions(self, suggestions):
-        title = "### 🧠 Belief Exploration Suggestions\n\n"
-        formatted_suggestions = [f"- {a}" for a in suggestions]
-        return title + "\n".join(formatted_suggestions)
+            if advices:
+                self.display_titled_list(
+                    "🧠 Ways to Explore Beliefs Further",
+                    advices,
+                )
 
-    def display_belief_suggestions(self):
-        ai = st.chat_message("ai")
-        with ai.status(
-            "🧠 Suggesting ways to explore your beliefs further...",
-            expanded=True,
-        ) as status:
-            suggestions = self.pipeline.get_belief_suggestions(self.chat_history)
-            status.update(
-                label="Belief exploration suggestions provided.",
-                state="complete",
-                expanded=False,
-            )
-
-        ai.markdown(self.format_belief_suggestions(suggestions))
-
-    def format_suggested_readings(self, results):
-        title = "### 📚 Suggested Readings\n\n"
-        formatted_results = [f"- [{r['title']}]({r['link']})" for r in results]
-        return title + "\n".join(formatted_results)
-
-    def display_suggested_readings(self):
-        ai = st.chat_message("ai")
-        with ai.status(
-            "📚 Curating list of suggested readings...",
-            expanded=True,
-        ) as status:
-            results = self.pipeline.get_suggested_readings(self.chat_history)
-            status.update(
-                label="Suggested readings curated.",
-                state="complete",
-                expanded=False,
-            )
-
-        ai.markdown(self.format_suggested_readings(results))
+            if readings:
+                readings = [f"[{r['title']}]({r['link']})" for r in readings]
+                self.display_titled_list(
+                    "📚 Interesting Online Articles",
+                    readings,
+                )
 
     def run(self):
         self.display_messages()
@@ -436,9 +411,7 @@ class ChatbotAgent:
         if self.chat_count == 0:
             st.info("Share an idea about the topic.", icon="ℹ️")
         elif self.chat_count >= self.config.parameters["max_k_chat"]:
-            self.display_summary()
-            self.display_belief_suggestions()
-            self.display_suggested_readings()
+            self.display_final_response()
             st.warning("You reached the limit.", icon="⚠️")
             return
 
