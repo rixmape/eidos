@@ -51,11 +51,11 @@ class WebQueriesModel(BaseModel):
     )
 
 
-class AreasForImprovementModel(BaseModel):
-    """Model for the areas for improvement in the conversation."""
+class BeliefSuggestionsModel(BaseModel):
+    """Model for suggesting ways to explore user's beliefs."""
 
-    areas: List[str] = Field(
-        description="List of areas for improvement in the conversation.",
+    suggestions: List[str] = Field(
+        description="List of practical suggestions to explore user's beliefs.",
         default=[],
     )
 
@@ -112,10 +112,10 @@ class ChatbotPipeline:
                 WebQueriesModel,
             )
         )
-        self.chain_areas_for_improvement = (
+        self.chain_belief_suggestions = (
             self.create_chain_with_structured_llm(
-                "areas_for_improvement",
-                AreasForImprovementModel,
+                "belief_suggestions",
+                BeliefSuggestionsModel,
             )
         )
         # fmt: on
@@ -198,11 +198,8 @@ class ChatbotPipeline:
         )
         llm = self.llm_main.with_structured_output(model)
         chain = prompt_template | llm
-        return chain.with_config(
-            {
-                "run_name": f"{template_key.replace('_', ' ').capitalize()} Generation",
-            }
-        )
+        run_name = f"{template_key.replace('_', ' ').title()} Generation"
+        return chain.with_config({"run_name": run_name})
 
     def format_documents(self, docs):
         context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
@@ -288,13 +285,11 @@ class ChatbotPipeline:
         )
         return response.key_ideas
 
-    def get_areas_for_improvement(self, history):
-        st.write("🔍 Analyzing conversation for areas of improvement...")
+    def get_belief_suggestions(self, history):
+        st.write("🧠 Analyzing your beliefs...")
         messages = self.get_messages_from_history(history)
-        response = self.chain_areas_for_improvement.invoke(
-            {"history": messages}
-        )
-        return response.areas
+        response = self.chain_belief_suggestions.invoke({"history": messages})
+        return response.suggestions
 
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
@@ -395,25 +390,25 @@ class ChatbotAgent:
 
         ai.markdown(self.format_key_ideas(key_ideas))
 
-    def format_areas_for_improvement(self, areas):
-        title = "### 🎯 Areas for Improvement\n\n"
-        formatted_areas = [f"- {a}" for a in areas]
-        return title + "\n".join(formatted_areas)
+    def format_belief_suggestions(self, suggestions):
+        title = "### 🧠 Belief Exploration Suggestions\n\n"
+        formatted_suggestions = [f"- {a}" for a in suggestions]
+        return title + "\n".join(formatted_suggestions)
 
-    def display_areas_for_improvement(self):
+    def display_belief_suggestions(self):
         ai = st.chat_message("ai")
         with ai.status(
-            "🔍 Analyzing conversation for areas of improvement...",
+            "🧠 Suggesting ways to explore your beliefs further...",
             expanded=True,
         ) as status:
-            areas = self.pipeline.get_areas_for_improvement(self.chat_history)
+            suggestions = self.pipeline.get_belief_suggestions(self.chat_history)
             status.update(
-                label="Areas for improvement identified.",
+                label="Belief exploration suggestions provided.",
                 state="complete",
                 expanded=False,
             )
 
-        ai.markdown(self.format_areas_for_improvement(areas))
+        ai.markdown(self.format_belief_suggestions(suggestions))
 
     def format_suggested_readings(self, results):
         title = "### 📚 Suggested Readings\n\n"
@@ -442,7 +437,7 @@ class ChatbotAgent:
             st.info("Share an idea about the topic.", icon="ℹ️")
         elif self.chat_count >= self.config.parameters["max_k_chat"]:
             self.display_summary()
-            self.display_areas_for_improvement()
+            self.display_belief_suggestions()
             self.display_suggested_readings()
             st.warning("You reached the limit.", icon="⚠️")
             return

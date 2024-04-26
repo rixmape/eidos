@@ -129,8 +129,8 @@ templates:
   web_queries: |
     Analyze our conversation and generate 10 queries that would help me find relevant articles from Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy, and other sources of philosophical knowledge. These queries should be based on the topics discussed and the user's beliefs. Ensure that the queries are specific and focused on philosophical concepts to accurately find certain articles. Each query must be distinct to fetch as many relevant articles as possible.
 
-  areas_for_improvement: |
-    Analyze our conversation and generate 3 sentences that identify areas where I can improve my philosophical reasoning, argumentation, or understanding. Provide specific suggestions on how I can enhance my philosophical skills, engage in more critical thinking, or explore new perspectives. Your feedback should be constructive and tailored to my current level of philosophical knowledge and reasoning abilities.
+  belief_suggestions: |
+    Analyze our conversation and generate three sentences that provide practical suggestions for the user to explore their beliefs further. These suggestions should encourage the user to engage in philosophical reflection, research, or discussion to deepen their understanding of the topic. Ensure that the suggestions are clear, actionable, and relevant to the user's expressed beliefs and questions. Each suggestion should be distinct and offer a unique approach to exploring the philosophical themes discussed. Limit your response to a list of 3 sentences.
 
 topics:
   - title: moral problems
