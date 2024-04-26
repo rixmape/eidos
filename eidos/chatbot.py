@@ -1,5 +1,4 @@
 import json
-from operator import itemgetter
 from typing import List, Literal
 
 import streamlit as st
@@ -52,6 +51,15 @@ class WebQueriesModel(BaseModel):
     )
 
 
+class AreasForImprovementModel(BaseModel):
+    """Model for the areas for improvement in the conversation."""
+
+    areas: List[str] = Field(
+        description="List of areas for improvement in the conversation.",
+        default=[],
+    )
+
+
 class StatementQualityModel(BaseModel):
     """Model for the logical quality of a statement."""
 
@@ -90,8 +98,27 @@ class ChatbotPipeline:
         self.chain_expansion = self.create_chain_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
-        self.chain_summary = self.create_chain_summary()
-        self.web_queries = self.create_web_queries_chain()
+
+        # fmt: off
+        self.chain_summary = (
+            self.create_chain_with_structured_llm(
+                "summary",
+                SummaryModel,
+            )
+        )
+        self.chain_web_queries = (
+            self.create_chain_with_structured_llm(
+                "web_queries",
+                WebQueriesModel,
+            )
+        )
+        self.chain_areas_for_improvement = (
+            self.create_chain_with_structured_llm(
+                "areas_for_improvement",
+                AreasForImprovementModel,
+            )
+        )
+        # fmt: on
 
         self.chain_question = self.create_chain_with_history("question")
         self.chain_answer = self.create_chain_with_history("answer")
@@ -161,27 +188,21 @@ class ChatbotPipeline:
             }
         )
 
-    def create_chain_summary(self):
+    def create_chain_with_structured_llm(self, template_key, model):
         prompt_template = ChatPromptTemplate.from_messages(
             [
+                ("system", self.system_template),
                 MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["summary"]),
+                ("human", self.config.templates[template_key]),
             ]
         )
-        llm = self.llm_helper.with_structured_output(SummaryModel)
+        llm = self.llm_main.with_structured_output(model)
         chain = prompt_template | llm
-        return chain.with_config({"run_name": "Summary Generation"})
-
-    def create_web_queries_chain(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["web_queries"]),
-            ]
+        return chain.with_config(
+            {
+                "run_name": f"{template_key.replace('_', ' ').capitalize()} Generation",
+            }
         )
-        llm = self.llm_helper.with_structured_output(WebQueriesModel)
-        chain = prompt_template | llm
-        return chain.with_config({"run_name": "Suggested Reading Queries"})
 
     def format_documents(self, docs):
         context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
@@ -267,6 +288,14 @@ class ChatbotPipeline:
         )
         return response.key_ideas
 
+    def get_areas_for_improvement(self, history):
+        st.write("🔍 Analyzing conversation for areas of improvement...")
+        messages = self.get_messages_from_history(history)
+        response = self.chain_areas_for_improvement.invoke(
+            {"history": messages}
+        )
+        return response.areas
+
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
         search = GoogleSearchAPIWrapper()
@@ -278,7 +307,7 @@ class ChatbotPipeline:
 
         st.write("❓ Generating search queries...")
         messages = self.get_messages_from_history(history)
-        response = self.web_queries.invoke({"history": messages})
+        response = self.chain_web_queries.invoke({"history": messages})
 
         st.write("🔍 Searching for relevant online articles...")
         readings = []
@@ -366,6 +395,26 @@ class ChatbotAgent:
 
         ai.markdown(self.format_key_ideas(key_ideas))
 
+    def format_areas_for_improvement(self, areas):
+        title = "### 🎯 Areas for Improvement\n\n"
+        formatted_areas = [f"- {a}" for a in areas]
+        return title + "\n".join(formatted_areas)
+
+    def display_areas_for_improvement(self):
+        ai = st.chat_message("ai")
+        with ai.status(
+            "🔍 Analyzing conversation for areas of improvement...",
+            expanded=True,
+        ) as status:
+            areas = self.pipeline.get_areas_for_improvement(self.chat_history)
+            status.update(
+                label="Areas for improvement identified.",
+                state="complete",
+                expanded=False,
+            )
+
+        ai.markdown(self.format_areas_for_improvement(areas))
+
     def format_suggested_readings(self, results):
         title = "### 📚 Suggested Readings\n\n"
         formatted_results = [f"- [{r['title']}]({r['link']})" for r in results]
@@ -393,6 +442,7 @@ class ChatbotAgent:
             st.info("Share an idea about the topic.", icon="ℹ️")
         elif self.chat_count >= self.config.parameters["max_k_chat"]:
             self.display_summary()
+            self.display_areas_for_improvement()
             self.display_suggested_readings()
             st.warning("You reached the limit.", icon="⚠️")
             return
