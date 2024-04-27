@@ -46,6 +46,10 @@ def set_page_style(customize_style: str = ""):
         margin: 0;
         width: 100%;
         height: 100%;
+        background-color: rgb(19, 23, 32);
+    }
+    label[data-baseweb="radio"]:has(.st-c2) {
+        background-color: rgb(93, 50, 50) !important;
     }
     label:has(.st-aw) {
         background-color: rgb(93, 50, 50);
@@ -73,6 +77,10 @@ def set_page_style(customize_style: str = ""):
         background-color: rgb(19, 23, 32) !important;
         margin: 0;
         min-height: 50px;
+    }
+    button[data-testid="baseButton-secondary"] p,
+    a[data-testid="stPageLink-NavLink"] p {
+        font-size: 1.1rem;
     }
     a[data-testid="stPageLink-NavLink"]:hover *,
     button[data-testid="baseButton-secondary"]:hover * {
