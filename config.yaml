@@ -13,7 +13,7 @@ parameters:
   docs_to_use: 2
   docs_to_process: 50
 
-  max_k_chat: 5
+  max_k_chat: 2
 
 welcome_message: |
   #### How does it work?

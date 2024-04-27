@@ -312,10 +312,11 @@ class ChatbotPipeline:
         st.write("🔍 Searching for online articles...")
         readings = []
         for query in response.queries:
-            result = tool.run(query)[0]
-            if not any(result["title"] == r["title"] for r in readings):
-                result["title"] = self.format_reading_title(result["title"])
-                readings.append(result)
+            results = tool.run(query)
+            for result in results:
+                if not any(result["title"] == r["title"] for r in readings):
+                    result["title"] = self.format_reading_title(result["title"])
+                    readings.append(result)
 
         return readings[:max_results]
 
@@ -327,10 +328,12 @@ class ChatbotAgent:
         self.chat_history = StreamlitChatMessageHistory()
         self.chat_count = 0
 
-        if not self.chat_history.messages:
-            self.add_greeting()
+        self.add_initial_message()
 
-    def add_greeting(self):
+    def add_initial_message(self):
+        if self.chat_history.messages:
+            return
+
         greeting = self.config.templates["greeting"]
         topic = self.config.selected_topic["title"]
         greeting = greeting.format(topic=topic)
@@ -338,47 +341,7 @@ class ChatbotAgent:
         content = json.dumps({"message": greeting})
         self.chat_history.add_ai_message(content)
 
-    def display_messages(self):
-        for message in self.chat_history.messages:
-            chat = st.chat_message(message.type)
-            content = json.loads(message.content)
-
-            chat.write(content["message"])
-
-            if message.type == "ai" and content.get("context"):
-                with chat.expander("These texts helped me think better:"):
-                    contexts = [
-                        f"> {cleaned_context}"
-                        for context in content["context"].split("\n")
-                        if (cleaned_context := context.strip("'"))
-                    ]
-                    st.markdown("\n\n".join(contexts))
-
-    def get_chat_messages(self):
-        return [
-            {"type": message.type, "content": message.content}
-            for message in self.chat_history.messages
-        ]
-
-    def handle_input(self):
-        if query := st.chat_input(key="chat_input"):
-            st.chat_message("human").write(query)
-
-            ai = st.chat_message("ai")
-            with ai.status(
-                "💭 Generating a meaningful response...",
-                expanded=True,
-            ):
-                response = self.pipeline.get_response(query, self.chat_history)
-
-            self.chat_history.add_user_message(json.dumps({"message": query}))
-            self.chat_history.add_ai_message(json.dumps(response))
-            self.chat_count += 1
-            st.rerun()
-
-    def display_final_response(self):
-        container = st.chat_message("ai")
-
+    def display_final_response(self, container):
         with container.status(
             "🔚 Wrapping up the conversation...",
             expanded=True,
@@ -412,19 +375,51 @@ class ChatbotAgent:
 
         with tab3:
             st.markdown("### 📚 Interesting Online Articles")
-            for reading in readings:
-                with st.container(border=True):
-                    st.markdown(f"**[{reading['title']}]({reading['link']})**")
-                    st.markdown(reading["snippet"])
+            readings = [f"- [{r['title']}]({r['link']})" for r in readings]
+            st.markdown("\n".join(readings))
+
+    def display_messages(self):
+        for message in self.chat_history.messages:
+            chat = st.chat_message(message.type)
+            content = json.loads(message.content)
+
+            chat.write(content["message"])
+
+            if message.type == "ai" and content.get("context"):
+                with chat.expander("These texts helped me think better:"):
+                    contexts = [
+                        f"> {cleaned_context}"
+                        for context in content["context"].split("\n")
+                        if (cleaned_context := context.strip("'"))
+                    ]
+                    st.markdown("\n\n".join(contexts))
+
+        if self.chat_count >= self.config.parameters["max_k_chat"]:
+            chat_container = st.chat_message("ai")
+            self.display_final_response(chat_container)
+            chat_container.warning("Conversation ended.", icon="⚠️")
+            st.stop()
+
+    def handle_input(self):
+        if query := st.chat_input(key="chat_input"):
+            st.chat_message("human").write(query)
+
+            ai = st.chat_message("ai")
+            with ai.status(
+                "💭 Generating a meaningful response...",
+                expanded=True,
+            ):
+                response = self.pipeline.get_response(query, self.chat_history)
+
+            user_content = json.dumps({"message": query})
+            self.chat_history.add_user_message(user_content)
+
+            ai_content = json.dumps(response)
+            self.chat_history.add_ai_message(ai_content)
+
+            self.chat_count += 1
+            st.rerun()
 
     def run(self):
         self.display_messages()
-
-        if self.chat_count == 0:
-            st.info("Share an idea about the topic.", icon="ℹ️")
-        elif self.chat_count >= self.config.parameters["max_k_chat"]:
-            self.display_final_response()
-            st.warning("You reached the limit.", icon="⚠️")
-            return
-
         self.handle_input()
