@@ -1,5 +1,4 @@
 import json
-from typing import List, Literal
 
 import streamlit as st
 from langchain_community.chat_message_histories.streamlit import (
@@ -13,68 +12,16 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
     PromptTemplate,
 )
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
-
-
-class RouteModel(BaseModel):
-    """Response model for routing a message to either LLM or vectorstore."""
-
-    explanation: str = Field(
-        description="Explanation for the route.",
-        default="",
-    )
-    decision: Literal["llm", "vectorstore"] = Field(
-        description="Name of the route.",
-        default="llm",
-    )
-
-
-class WebSearchQueriesModel(BaseModel):
-    """Model for generating web search queries."""
-
-    queries: List[str] = Field(
-        description="List of web search queries.",
-        default=[],
-    )
-
-
-class BeliefAdvicesModel(BaseModel):
-    """Model for advicing ways to explore beliefs further."""
-
-    advices: List[str] = Field(
-        description="List of advices for exploring beliefs further.",
-        default=[],
-    )
-
-
-class StatementQualityModel(BaseModel):
-    """Model for the logical quality of a statement."""
-
-    classification: Literal[
-        "consistent",
-        "inconsistent",
-    ] = Field(
-        description="Whether the statement is consistent or inconsistent.",
-        default="consistent",
-    )
-    type: Literal[
-        "fallacy",
-        "external contradiction with philosophical texts",
-        "external contradiction with previous statements",
-        "internal contradiction within the statement",
-        "unsupported claim",
-    ] = Field(
-        description="Type of inconsistency in the statement, if any.",
-        default="",
-    )
-    explanation: str = Field(
-        description="Explanation for the classification of the statement.",
-        default="",
-    )
+from eidos.response_models import (
+    BeliefAdvicesModel,
+    RouteModel,
+    StatementQualityModel,
+    WebSearchQueriesModel,
+)
 
 
 class ChatbotPipeline:
@@ -401,21 +348,25 @@ class ChatbotAgent:
             st.stop()
 
     def handle_input(self):
-        if query := st.chat_input(key="chat_input"):
-            st.chat_message("human").write(query)
+        user_input = st.chat_input()
 
-            ai = st.chat_message("ai")
-            with ai.status(
+        if user_input:
+            st.chat_message("human").write(user_input)
+
+            with st.chat_message("ai").status(
                 "💭 Generating a meaningful response...",
                 expanded=True,
             ):
-                response = self.pipeline.get_response(query, self.chat_history)
+                response = self.pipeline.get_response(
+                    user_input,
+                    self.chat_history,
+                )
 
-            user_content = json.dumps({"message": query})
-            self.chat_history.add_user_message(user_content)
+            user_message = json.dumps({"message": user_input})
+            self.chat_history.add_user_message(user_message)
 
-            ai_content = json.dumps(response)
-            self.chat_history.add_ai_message(ai_content)
+            ai_message = json.dumps(response)
+            self.chat_history.add_ai_message(ai_message)
 
             self.chat_count += 1
             st.rerun()
