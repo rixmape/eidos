@@ -33,15 +33,6 @@ class RouteModel(BaseModel):
     )
 
 
-class KeyPointsModel(BaseModel):
-    """Model for summarizing key points from a conversation."""
-
-    key_points: List[str] = Field(
-        description="List of key points from the conversation.",
-        default=[],
-    )
-
-
 class WebSearchQueriesModel(BaseModel):
     """Model for generating web search queries."""
 
@@ -98,14 +89,9 @@ class ChatbotPipeline:
         self.chain_expansion = self.create_chain_expansion()
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
+        self.chain_summary = self.create_chain_summary()
 
         # fmt: off
-        self.chain_key_points = (
-            self.create_chain_with_structured_llm(
-                "key_points",
-                KeyPointsModel,
-            )
-        )
         self.chain_belief_advices = (
             self.create_chain_with_structured_llm(
                 "belief_advices",
@@ -178,6 +164,16 @@ class ChatbotPipeline:
             | self.format_quality
         )
         return chain.with_config({"run_name": "Statement Quality"})
+
+    def create_chain_summary(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="history"),
+                ("human", self.config.templates["summary"]),
+            ]
+        )
+        chain = prompt_template | self.llm_main | StrOutputParser()
+        return chain.with_config({"run_name": "Dialogue Summary"})
 
     def create_chain_with_history(self, template_key):
         prompt_template = ChatPromptTemplate.from_messages(
@@ -280,11 +276,10 @@ class ChatbotPipeline:
 
         return {"message": answer, "context": context}
 
-    def get_key_points(self, history, max_results=5):
-        st.write("💬 Extracting key points...")
+    def get_summary(self, history):
+        st.write("📄 Summarizing our conversation...")
         messages = self.get_messages_from_history(history)
-        response = self.chain_key_points.invoke({"history": messages})
-        return response.key_points[:max_results]
+        return self.chain_summary.invoke({"history": messages})
 
     def get_belief_advices(self, history, max_results=3):
         st.write("🧠 Exploring your beliefs further...")
@@ -388,7 +383,7 @@ class ChatbotAgent:
             "🔚 Wrapping up the conversation...",
             expanded=True,
         ) as status:
-            points = self.pipeline.get_key_points(self.chat_history)
+            summary = self.pipeline.get_summary(self.chat_history)
             advices = self.pipeline.get_belief_advices(self.chat_history)
             readings = self.pipeline.get_suggested_readings(self.chat_history)
             status.update(
@@ -399,26 +394,24 @@ class ChatbotAgent:
 
         tab1, tab2, tab3 = container.tabs(
             [
-                "🔑 Summary",
+                "📄 Summary",
                 "🧠 Suggestions",
                 "📚 Articles",
             ]
         )
 
         with tab1:
-            st.markdown("### 🔑 Key Points from Conversation")
-            for point in points:
-                with st.container(border=True):
-                    st.markdown(point)
+            st.markdown("### 📄 Dialogue Summary")
+            st.markdown(summary)
 
         with tab2:
-            st.markdown("🧠 Ways to Explore Beliefs Further")
+            st.markdown("### 🧠 Ways to Explore Beliefs Further")
             for advice in advices:
                 with st.container(border=True):
                     st.markdown(advice)
 
         with tab3:
-            st.markdown("📚 Interesting Online Articles")
+            st.markdown("### 📚 Interesting Online Articles")
             for reading in readings:
                 with st.container(border=True):
                     st.markdown(f"**[{reading['title']}]({reading['link']})**")
