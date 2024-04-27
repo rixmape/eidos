@@ -124,8 +124,14 @@ class ChatbotPipeline:
         self.chain_answer = self.create_chain_with_history("answer")
 
     def initialize_llms(self):
-        self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
-        self.llm_helper = ChatOpenAI(model=self.config.parameters["llm_helper"])
+        self.llm_main = ChatOpenAI(
+            model=self.config.parameters["llm_main"],
+            temperature=self.config.parameters["llm_temperature"],
+        )
+        self.llm_helper = ChatOpenAI(
+            model=self.config.parameters["llm_helper"],
+            temperature=self.config.parameters["llm_temperature"],
+        )
 
     def initialize_templates(self):
         instructions = [
@@ -195,7 +201,7 @@ class ChatbotPipeline:
                 ("human", self.config.templates[template_key]),
             ]
         )
-        llm = self.llm_helper.with_structured_output(model)
+        llm = self.llm_main.with_structured_output(model)
         chain = prompt_template | llm
         run_name = f"{template_key.replace('_', ' ').title()} Generation"
         return chain.with_config({"run_name": run_name})
@@ -274,17 +280,26 @@ class ChatbotPipeline:
 
         return {"message": answer, "context": context}
 
-    def get_key_points(self, history):
+    def get_key_points(self, history, max_results=5):
         st.write("💬 Extracting key points...")
         messages = self.get_messages_from_history(history)
         response = self.chain_key_points.invoke({"history": messages})
-        return response.key_points
+        return response.key_points[:max_results]
 
-    def get_belief_advices(self, history):
+    def get_belief_advices(self, history, max_results=3):
         st.write("🧠 Exploring your beliefs further...")
         messages = self.get_messages_from_history(history)
         response = self.chain_belief_advices.invoke({"history": messages})
-        return response.advices
+        return response.advices[:max_results]
+
+    def format_reading_title(self, title):
+        removables = [
+            "(Stanford Encyclopedia of Philosophy)",
+            "| Internet Encyclopedia of Philosophy",
+        ]
+        for removable in removables:
+            title = title.replace(removable, "")
+        return title.strip()
 
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
@@ -292,7 +307,7 @@ class ChatbotPipeline:
         tool = Tool(
             name="Google Search Snippets",
             description="Search Google for recent results.",
-            func=lambda query: search.results(query, 1),
+            func=lambda query: search.results(query, 2),
         )
 
         st.write("❓ Generating relevant search queries...")
@@ -304,6 +319,7 @@ class ChatbotPipeline:
         for query in response.queries:
             result = tool.run(query)[0]
             if not any(result["title"] == r["title"] for r in readings):
+                result["title"] = self.format_reading_title(result["title"])
                 readings.append(result)
 
         return readings[:max_results]
@@ -365,10 +381,6 @@ class ChatbotAgent:
             self.chat_count += 1
             st.rerun()
 
-    def display_titled_list(self, title, items):
-        content = "\n".join([f"- {item}" for item in items])
-        st.markdown(f"### {title}\n\n{content}")
-
     def display_final_response(self):
         container = st.chat_message("ai")
 
@@ -385,25 +397,32 @@ class ChatbotAgent:
                 expanded=False,
             )
 
-        with container:
-            if points:
-                self.display_titled_list(
-                    "🔑 Key Points from Conversation",
-                    points,
-                )
+        tab1, tab2, tab3 = container.tabs(
+            [
+                "🔑 Summary",
+                "🧠 Suggestions",
+                "📚 Articles",
+            ]
+        )
 
-            if advices:
-                self.display_titled_list(
-                    "🧠 Ways to Explore Beliefs Further",
-                    advices,
-                )
+        with tab1:
+            st.markdown("### 🔑 Key Points from Conversation")
+            for point in points:
+                with st.container(border=True):
+                    st.markdown(point)
 
-            if readings:
-                readings = [f"[{r['title']}]({r['link']})" for r in readings]
-                self.display_titled_list(
-                    "📚 Interesting Online Articles",
-                    readings,
-                )
+        with tab2:
+            st.markdown("🧠 Ways to Explore Beliefs Further")
+            for advice in advices:
+                with st.container(border=True):
+                    st.markdown(advice)
+
+        with tab3:
+            st.markdown("📚 Interesting Online Articles")
+            for reading in readings:
+                with st.container(border=True):
+                    st.markdown(f"**[{reading['title']}]({reading['link']})**")
+                    st.markdown(reading["snippet"])
 
     def run(self):
         self.display_messages()
