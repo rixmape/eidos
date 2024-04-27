@@ -1,6 +1,7 @@
 parameters:
   llm_main: gpt-4
   llm_helper: gpt-3.5-turbo
+  llm_temperature: 0
 
   embedding_model: text-embedding-3-small
   embedding_dimensions: 1536
@@ -124,10 +125,13 @@ templates:
     2. Ask this Socratic question: {question}
 
   summary: |
-    Analyze our conversation and generate a list of sentences that summarize the key points discussed. These sentences should capture the essence of our philosophical dialogue and highlight the main beliefs, arguments, and questions raised during the conversation. Ensure that the summary is concise, coherent, and reflective of the philosophical themes explored. Do not write too long sentences. Keep it simple and clear. Write a maximum of 5 sentences.
+    Analyze our conversation and generate a summary that captures the key beliefs, arguments, and questions discussed. The summary should provide a concise overview of the topics explored and the insights gained from the conversation. Use the pronoun "I" to refer to the AI, "you" to refer to the user, and "we" to refer to both parties. Ensure that the summary is concise, coherent, and captures the essence of our philosophical dialogue. Use straightforward language by simplifying vocabulary and sentence structure for clarity.
 
-  web_queries: |
-    Analyze our conversation and generate 10 queries that would help me find relevant articles from Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy, and other sources of philosophical knowledge. These queries should be based on the topics discussed and the user's beliefs. Ensure that the queries are specific and focused on philosophical concepts to accurately find certain articles. Each query must be distinct to fetch as many relevant articles as possible.
+  web_search_queries: |
+    Analyze our conversation and generate 3 queries that would help me find relevant articles from Stanford Encyclopedia of Philosophy and other online publications related to philosophy. These queries should be based on the beliefs, arguments, and questions raised during the conversation. Ensure that each query are specific and focused on philosophical concepts to accurately find relevant articles. Each query must be distinct to cover a wide range of topics discussed.
+
+  belief_advices: |
+    Analyze our conversation and generate 4 sentences that provide practical suggestions for the user to explore their beliefs further. These suggestions should encourage the user to engage in philosophical reflection, research, or discussion to deepen their understanding of the topic. Ensure that the suggestions are clear, actionable, and relevant to the user's expressed beliefs and questions. Each suggestion should be distinct and offer a unique approach to exploring the philosophical themes discussed.
 
 topics:
   - title: moral problems

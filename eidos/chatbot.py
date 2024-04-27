@@ -1,5 +1,4 @@
 import json
-from operator import itemgetter
 from typing import List, Literal
 
 import streamlit as st
@@ -34,20 +33,20 @@ class RouteModel(BaseModel):
     )
 
 
-class SummaryModel(BaseModel):
-    """Response model for summarizing a conversation."""
+class WebSearchQueriesModel(BaseModel):
+    """Model for generating web search queries."""
 
-    key_ideas: List[str] = Field(
-        description="List of topic sentences summarizing the conversation.",
+    queries: List[str] = Field(
+        description="List of web search queries.",
         default=[],
     )
 
 
-class WebQueriesModel(BaseModel):
-    """Model for the web queries to find philosophy articles."""
+class BeliefAdvicesModel(BaseModel):
+    """Model for advicing ways to explore beliefs further."""
 
-    queries: List[str] = Field(
-        description="List of ten queries to find philosophy articles.",
+    advices: List[str] = Field(
+        description="List of advices for exploring beliefs further.",
         default=[],
     )
 
@@ -91,14 +90,34 @@ class ChatbotPipeline:
         self.chain_context = self.create_chain_context()
         self.chain_quality = self.create_chain_quality()
         self.chain_summary = self.create_chain_summary()
-        self.web_queries = self.create_web_queries_chain()
+
+        # fmt: off
+        self.chain_belief_advices = (
+            self.create_chain_with_structured_llm(
+                "belief_advices",
+                BeliefAdvicesModel,
+            )
+        )
+        self.chain_web_queries = (
+            self.create_chain_with_structured_llm(
+                "web_search_queries",
+                WebSearchQueriesModel,
+            )
+        )
+        # fmt: on
 
         self.chain_question = self.create_chain_with_history("question")
         self.chain_answer = self.create_chain_with_history("answer")
 
     def initialize_llms(self):
-        self.llm_main = ChatOpenAI(model=self.config.parameters["llm_main"])
-        self.llm_helper = ChatOpenAI(model=self.config.parameters["llm_helper"])
+        self.llm_main = ChatOpenAI(
+            model=self.config.parameters["llm_main"],
+            temperature=self.config.parameters["llm_temperature"],
+        )
+        self.llm_helper = ChatOpenAI(
+            model=self.config.parameters["llm_helper"],
+            temperature=self.config.parameters["llm_temperature"],
+        )
 
     def initialize_templates(self):
         instructions = [
@@ -146,6 +165,16 @@ class ChatbotPipeline:
         )
         return chain.with_config({"run_name": "Statement Quality"})
 
+    def create_chain_summary(self):
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="history"),
+                ("human", self.config.templates["summary"]),
+            ]
+        )
+        chain = prompt_template | self.llm_main | StrOutputParser()
+        return chain.with_config({"run_name": "Dialogue Summary"})
+
     def create_chain_with_history(self, template_key):
         prompt_template = ChatPromptTemplate.from_messages(
             [
@@ -161,27 +190,17 @@ class ChatbotPipeline:
             }
         )
 
-    def create_chain_summary(self):
+    def create_chain_with_structured_llm(self, template_key, model):
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["summary"]),
+                ("human", self.config.templates[template_key]),
             ]
         )
-        llm = self.llm_helper.with_structured_output(SummaryModel)
+        llm = self.llm_main.with_structured_output(model)
         chain = prompt_template | llm
-        return chain.with_config({"run_name": "Summary Generation"})
-
-    def create_web_queries_chain(self):
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                MessagesPlaceholder(variable_name="history"),
-                ("human", self.config.templates["web_queries"]),
-            ]
-        )
-        llm = self.llm_helper.with_structured_output(WebQueriesModel)
-        chain = prompt_template | llm
-        return chain.with_config({"run_name": "Suggested Reading Queries"})
+        run_name = f"{template_key.replace('_', ' ').title()} Generation"
+        return chain.with_config({"run_name": run_name})
 
     def format_documents(self, docs):
         context = "\n\n".join([f"'''\n{doc.page_content}\n'''" for doc in docs])
@@ -257,15 +276,25 @@ class ChatbotPipeline:
 
         return {"message": answer, "context": context}
 
-    def get_key_ideas(self, history):
-        st.write("💬 Reading previous messages...")
+    def get_summary(self, history):
+        st.write("📄 Summarizing our conversation...")
         messages = self.get_messages_from_history(history)
-        response = self.chain_summary.invoke(
-            {
-                "history": messages,
-            }
-        )
-        return response.key_ideas
+        return self.chain_summary.invoke({"history": messages})
+
+    def get_belief_advices(self, history, max_results=3):
+        st.write("🧠 Exploring your beliefs further...")
+        messages = self.get_messages_from_history(history)
+        response = self.chain_belief_advices.invoke({"history": messages})
+        return response.advices[:max_results]
+
+    def format_reading_title(self, title):
+        removables = [
+            "(Stanford Encyclopedia of Philosophy)",
+            "| Internet Encyclopedia of Philosophy",
+        ]
+        for removable in removables:
+            title = title.replace(removable, "")
+        return title.strip()
 
     def get_suggested_readings(self, history, max_results=5):
         st.write("🌐 Initializing web search tool...")
@@ -273,18 +302,19 @@ class ChatbotPipeline:
         tool = Tool(
             name="Google Search Snippets",
             description="Search Google for recent results.",
-            func=lambda query: search.results(query, 1),
+            func=lambda query: search.results(query, 2),
         )
 
-        st.write("❓ Generating search queries...")
+        st.write("❓ Generating relevant search queries...")
         messages = self.get_messages_from_history(history)
-        response = self.web_queries.invoke({"history": messages})
+        response = self.chain_web_queries.invoke({"history": messages})
 
-        st.write("🔍 Searching for relevant online articles...")
+        st.write("🔍 Searching for online articles...")
         readings = []
         for query in response.queries:
             result = tool.run(query)[0]
             if not any(result["title"] == r["title"] for r in readings):
+                result["title"] = self.format_reading_title(result["title"])
                 readings.append(result)
 
         return readings[:max_results]
@@ -336,7 +366,7 @@ class ChatbotAgent:
 
             ai = st.chat_message("ai")
             with ai.status(
-                "💭 Thinking of a meaningful response...",
+                "💭 Generating a meaningful response...",
                 expanded=True,
             ):
                 response = self.pipeline.get_response(query, self.chat_history)
@@ -346,45 +376,46 @@ class ChatbotAgent:
             self.chat_count += 1
             st.rerun()
 
-    def format_key_ideas(self, sentences):
-        title = "### 📝 Summary\n\n"
-        formatted_sentences = [f"- {s}" for s in sentences]
-        return title + "\n".join(formatted_sentences)
+    def display_final_response(self):
+        container = st.chat_message("ai")
 
-    def display_summary(self):
-        ai = st.chat_message("ai")
-        with ai.status(
-            "📝 Summarizing our conversation...",
+        with container.status(
+            "🔚 Wrapping up the conversation...",
             expanded=True,
         ) as status:
-            key_ideas = self.pipeline.get_key_ideas(self.chat_history)
+            summary = self.pipeline.get_summary(self.chat_history)
+            advices = self.pipeline.get_belief_advices(self.chat_history)
+            readings = self.pipeline.get_suggested_readings(self.chat_history)
             status.update(
-                label="Summary generated.",
+                label="Conversation ended.",
                 state="complete",
                 expanded=False,
             )
 
-        ai.markdown(self.format_key_ideas(key_ideas))
+        tab1, tab2, tab3 = container.tabs(
+            [
+                "📄 Summary",
+                "🧠 Suggestions",
+                "📚 Articles",
+            ]
+        )
 
-    def format_suggested_readings(self, results):
-        title = "### 📚 Suggested Readings\n\n"
-        formatted_results = [f"- [{r['title']}]({r['link']})" for r in results]
-        return title + "\n".join(formatted_results)
+        with tab1:
+            st.markdown("### 📄 Dialogue Summary")
+            st.markdown(summary)
 
-    def display_suggested_readings(self):
-        ai = st.chat_message("ai")
-        with ai.status(
-            "📚 Curating list of suggested readings...",
-            expanded=True,
-        ) as status:
-            results = self.pipeline.get_suggested_readings(self.chat_history)
-            status.update(
-                label="Suggested readings curated.",
-                state="complete",
-                expanded=False,
-            )
+        with tab2:
+            st.markdown("### 🧠 Ways to Explore Beliefs Further")
+            for advice in advices:
+                with st.container(border=True):
+                    st.markdown(advice)
 
-        ai.markdown(self.format_suggested_readings(results))
+        with tab3:
+            st.markdown("### 📚 Interesting Online Articles")
+            for reading in readings:
+                with st.container(border=True):
+                    st.markdown(f"**[{reading['title']}]({reading['link']})**")
+                    st.markdown(reading["snippet"])
 
     def run(self):
         self.display_messages()
@@ -392,8 +423,7 @@ class ChatbotAgent:
         if self.chat_count == 0:
             st.info("Share an idea about the topic.", icon="ℹ️")
         elif self.chat_count >= self.config.parameters["max_k_chat"]:
-            self.display_summary()
-            self.display_suggested_readings()
+            self.display_final_response()
             st.warning("You reached the limit.", icon="⚠️")
             return
 
