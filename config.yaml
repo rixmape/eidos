@@ -15,11 +15,6 @@ parameters:
 
   max_k_chat: 5
 
-welcome_message: |
-  #### How does it work?
-
-  Eidos helps you share your beliefs, spot contradictions, and consider other views by using the Socratic Method. This method involves asking questions and having discussions.
-
 templates:
   greeting: |
     What's something you believe to be true about {topic}?

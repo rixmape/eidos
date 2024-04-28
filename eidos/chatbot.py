@@ -1,5 +1,4 @@
 import json
-from typing import List, Literal
 
 import streamlit as st
 from langchain_community.chat_message_histories.streamlit import (
@@ -13,68 +12,16 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
     PromptTemplate,
 )
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI
 
 from eidos.document_manager import DocumentManager
-
-
-class RouteModel(BaseModel):
-    """Response model for routing a message to either LLM or vectorstore."""
-
-    explanation: str = Field(
-        description="Explanation for the route.",
-        default="",
-    )
-    decision: Literal["llm", "vectorstore"] = Field(
-        description="Name of the route.",
-        default="llm",
-    )
-
-
-class WebSearchQueriesModel(BaseModel):
-    """Model for generating web search queries."""
-
-    queries: List[str] = Field(
-        description="List of web search queries.",
-        default=[],
-    )
-
-
-class BeliefAdvicesModel(BaseModel):
-    """Model for advicing ways to explore beliefs further."""
-
-    advices: List[str] = Field(
-        description="List of advices for exploring beliefs further.",
-        default=[],
-    )
-
-
-class StatementQualityModel(BaseModel):
-    """Model for the logical quality of a statement."""
-
-    classification: Literal[
-        "consistent",
-        "inconsistent",
-    ] = Field(
-        description="Whether the statement is consistent or inconsistent.",
-        default="consistent",
-    )
-    type: Literal[
-        "fallacy",
-        "external contradiction with philosophical texts",
-        "external contradiction with previous statements",
-        "internal contradiction within the statement",
-        "unsupported claim",
-    ] = Field(
-        description="Type of inconsistency in the statement, if any.",
-        default="",
-    )
-    explanation: str = Field(
-        description="Explanation for the classification of the statement.",
-        default="",
-    )
+from eidos.response_models import (
+    BeliefAdvicesModel,
+    RouteModel,
+    StatementQualityModel,
+    WebSearchQueriesModel,
+)
 
 
 class ChatbotPipeline:
@@ -312,10 +259,11 @@ class ChatbotPipeline:
         st.write("🔍 Searching for online articles...")
         readings = []
         for query in response.queries:
-            result = tool.run(query)[0]
-            if not any(result["title"] == r["title"] for r in readings):
-                result["title"] = self.format_reading_title(result["title"])
-                readings.append(result)
+            results = tool.run(query)
+            for result in results:
+                if not any(result["title"] == r["title"] for r in readings):
+                    result["title"] = self.format_reading_title(result["title"])
+                    readings.append(result)
 
         return readings[:max_results]
 
@@ -327,10 +275,12 @@ class ChatbotAgent:
         self.chat_history = StreamlitChatMessageHistory()
         self.chat_count = 0
 
-        if not self.chat_history.messages:
-            self.add_greeting()
+        self.add_initial_message()
 
-    def add_greeting(self):
+    def add_initial_message(self):
+        if self.chat_history.messages:
+            return
+
         greeting = self.config.templates["greeting"]
         topic = self.config.selected_topic["title"]
         greeting = greeting.format(topic=topic)
@@ -338,47 +288,7 @@ class ChatbotAgent:
         content = json.dumps({"message": greeting})
         self.chat_history.add_ai_message(content)
 
-    def display_messages(self):
-        for message in self.chat_history.messages:
-            chat = st.chat_message(message.type)
-            content = json.loads(message.content)
-
-            chat.write(content["message"])
-
-            if message.type == "ai" and content.get("context"):
-                with chat.expander("These texts helped me think better:"):
-                    contexts = [
-                        f"> {cleaned_context}"
-                        for context in content["context"].split("\n")
-                        if (cleaned_context := context.strip("'"))
-                    ]
-                    st.markdown("\n\n".join(contexts))
-
-    def get_chat_messages(self):
-        return [
-            {"type": message.type, "content": message.content}
-            for message in self.chat_history.messages
-        ]
-
-    def handle_input(self):
-        if query := st.chat_input(key="chat_input"):
-            st.chat_message("human").write(query)
-
-            ai = st.chat_message("ai")
-            with ai.status(
-                "💭 Generating a meaningful response...",
-                expanded=True,
-            ):
-                response = self.pipeline.get_response(query, self.chat_history)
-
-            self.chat_history.add_user_message(json.dumps({"message": query}))
-            self.chat_history.add_ai_message(json.dumps(response))
-            self.chat_count += 1
-            st.rerun()
-
-    def display_final_response(self):
-        container = st.chat_message("ai")
-
+    def display_final_response(self, container):
         with container.status(
             "🔚 Wrapping up the conversation...",
             expanded=True,
@@ -412,19 +322,55 @@ class ChatbotAgent:
 
         with tab3:
             st.markdown("### 📚 Interesting Online Articles")
-            for reading in readings:
-                with st.container(border=True):
-                    st.markdown(f"**[{reading['title']}]({reading['link']})**")
-                    st.markdown(reading["snippet"])
+            readings = [f"- [{r['title']}]({r['link']})" for r in readings]
+            st.markdown("\n".join(readings))
+
+    def display_messages(self):
+        for message in self.chat_history.messages:
+            chat = st.chat_message(message.type)
+            content = json.loads(message.content)
+
+            chat.write(content["message"])
+
+            if message.type == "ai" and content.get("context"):
+                with chat.expander("These texts helped me think better:"):
+                    contexts = [
+                        f"> {cleaned_context}"
+                        for context in content["context"].split("\n")
+                        if (cleaned_context := context.strip("'"))
+                    ]
+                    st.markdown("\n\n".join(contexts))
+
+        if self.chat_count >= self.config.parameters["max_k_chat"]:
+            chat_container = st.chat_message("ai")
+            self.display_final_response(chat_container)
+            chat_container.warning("Conversation ended.", icon="⚠️")
+            st.stop()
+
+    def handle_input(self):
+        user_input = st.chat_input()
+
+        if user_input:
+            st.chat_message("human").write(user_input)
+
+            with st.chat_message("ai").status(
+                "💭 Generating a meaningful response...",
+                expanded=True,
+            ):
+                response = self.pipeline.get_response(
+                    user_input,
+                    self.chat_history,
+                )
+
+            user_message = json.dumps({"message": user_input})
+            self.chat_history.add_user_message(user_message)
+
+            ai_message = json.dumps(response)
+            self.chat_history.add_ai_message(ai_message)
+
+            self.chat_count += 1
+            st.rerun()
 
     def run(self):
         self.display_messages()
-
-        if self.chat_count == 0:
-            st.info("Share an idea about the topic.", icon="ℹ️")
-        elif self.chat_count >= self.config.parameters["max_k_chat"]:
-            self.display_final_response()
-            st.warning("You reached the limit.", icon="⚠️")
-            return
-
         self.handle_input()
