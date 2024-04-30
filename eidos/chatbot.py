@@ -347,8 +347,8 @@ class ChatbotAgent:
             chat_container.warning("Conversation ended.", icon="⚠️")
             st.stop()
 
-    def handle_input(self):
-        user_input = st.chat_input()
+    def handle_input(self, max_chars=500):
+        user_input = st.chat_input(max_chars=max_chars)
 
         if user_input:
             st.chat_message("human").write(user_input)
